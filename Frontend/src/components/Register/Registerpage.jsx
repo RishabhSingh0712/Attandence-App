@@ -1,5 +1,6 @@
-// RegisterPage.js
+
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -32,8 +33,7 @@ const RegisterPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Basic form validation
+    axios.post('http://localhost:3000/AttendanceApp')
     let formIsValid = true;
     const newErrors = { ...errors };
 
