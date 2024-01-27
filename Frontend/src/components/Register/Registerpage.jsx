@@ -32,7 +32,8 @@ const RegisterPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:3000/AttendanceApp')
+    axios.post('http://localhost:3000/register', formData);
+
     let formIsValid = true;
     const newErrors = { ...errors };
 
@@ -72,6 +73,8 @@ const RegisterPage = () => {
 
     if (formIsValid) {
       // Perform registration logic here
+      
+   
       console.log('Registration successful');
     } else {
       setErrors(newErrors);
