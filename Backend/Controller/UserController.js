@@ -1,26 +1,30 @@
-import Register from '../model/Register.js'
+import RegisterSchema from '../model/Register.js'
 import bcrypt from 'bcrypt'
-// import { Jwt } from 'jsonwebtoken'
+// import  jwt  from 'jsonwebtoken'
 
 class UserController{
     static userRegistration = async (req,res)=>{
-        const {name,phoneNumber,email,password,confirmPassword}=req.body
-        const user = await Register.findOne({email:email})
+        const {name,phoneNumber,Email,Password,ConfirmPassword}=req.body
+        const user = await RegisterSchema.findOne({Email:Email})
         if (user) {
             res.send({"status":"failed","message":"Email already exists please try another email"})
         }
         else{
-            if (name,phoneNumber,password,confirmPassword) {
-                if (password === confirmPassword) {
+            if (name,phoneNumber,Password,ConfirmPassword) {
+                if (Password === ConfirmPassword) {
                    try {
-                     const salt = await bcrypt.genSalt(15)
-                     const hashPassword = await bcrypt.hash(password,salt)
+                     const salt = await bcrypt.genSalt(10)
+                     const hashPassword = await bcrypt.hash(Password,salt)
                      const User = new Usermodel({
                          name:name,
-                         email:email,
-                         password:hashPassword
+                         Email:Email,
+                         phoneNumber:phoneNumber,
+                         Password:hashPassword,
+                         ConfirmPassword:ConfirmPassword
+                         
                      })
                      await User.save()
+                     res.send({"status":"Sucess","message":"User Registration Succesfully"})
                    } catch (error) {
                     res.send({"status":"failed","message":"Unable to Register"})
                    }

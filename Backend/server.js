@@ -7,6 +7,7 @@ import userRoutes from './routes/userRoutes.js'
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use("/api/user", userRoutes)
 
 mongoose.connect("mongodb+srv://srishabhdev07:Rishabh123@cluster1.az5qugh.mongodb.net");
 mongoose.connection.on("error", (err) => {
