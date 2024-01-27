@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
 const RegisterSchema = new mongoose.Schema(
   {
@@ -29,7 +29,8 @@ const RegisterSchema = new mongoose.Schema(
         required: [true, "Password is required"],
     }
   },
-  { timetamps: true }
+  
 );
 
-export const Register = mongoose.model("Register", RegisterSchema);
+const Register = mongoose.model("Register", RegisterSchema);
+export default Register;
