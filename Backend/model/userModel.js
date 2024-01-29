@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import {model,Schema} from "mongoose";
 
-const RegisterSchema = new mongoose.Schema(
+const userSchema = new Schema(
   {
     name: {
       type: String,
@@ -8,7 +8,7 @@ const RegisterSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
-    PhoneNumber: {
+    phoneNumber: { 
       type: Number,
       required: true,
       unique: true,
@@ -29,8 +29,9 @@ const RegisterSchema = new mongoose.Schema(
         required: [true, "Password is required"],
     }
   },
-  
 );
 
-const Register = mongoose.model("Register", RegisterSchema);
-export default Register;
+
+const User = model("user", userSchema);
+User.createIndexes();
+export default User;
