@@ -32,7 +32,10 @@ const RegisterPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post('http://localhost:3000/register', formData);
+    axios.post('http://localhost:5000/AttendanceApp')
+    .then ((response)=>{
+      users(response.data)
+    })
 
     let formIsValid = true;
     const newErrors = { ...errors };
