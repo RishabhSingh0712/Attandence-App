@@ -27,7 +27,7 @@ const userSchema = new Schema(
     ConfirmPassword: {
         type: String,
         required: [true, "Password is required"],
-    }
+    },
   },
 );
 
