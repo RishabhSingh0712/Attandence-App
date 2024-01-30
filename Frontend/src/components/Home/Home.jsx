@@ -32,7 +32,7 @@ export default function Home() {
 
     const handleButtonClick = (action) => {
         getLocation();
-        
+        // Handle the action based on the currentLocation
         console.log(`Button clicked for ${action}. Current location:`, currentLocation);
     };
 
