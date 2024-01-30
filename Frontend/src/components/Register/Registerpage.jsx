@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
 
 const RegisterPage = () => {
-  
-  
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
@@ -33,21 +34,21 @@ const RegisterPage = () => {
   };
 
   const initialFormData = {
-    name: '',
-    phoneNumber: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   };
 
   const resetForm = () => {
     setFormData(initialFormData);
     setErrors({
-      name: '',
-      phoneNumber: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      name: "",
+      phoneNumber: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     });
   };
 
@@ -92,7 +93,7 @@ const RegisterPage = () => {
     }
 
     if (formIsValid) {
-      try { 
+      try {
         const data = {
           name: formData.name,
           phoneNumber: formData.phoneNumber,
@@ -102,21 +103,20 @@ const RegisterPage = () => {
         };
         await axios
           .post("http://127.0.0.1:5000/api/user/register", data)
-          .then((response) => { 
-           
-            console.log(response.data['data']);
+          .then((response) => {
+            if (response.status === 400) {
+              console.log("user already present");
+              
+            } else {
+              alert("Congratulations! User Registered Successfully!!");
+              navigate("/login");
+            }
+            console.log(response.data["data"]);
             resetForm();
-            
-          })
-          .catch((error) => {
-             
-            console.log('some error occurered  ' + error);
-          
-        
           });
       } catch (error) {
-        console.log('this is outer block ' + error);
-      } 
+        console.log("this is outer block " + error);
+      }
     } else {
       setErrors(newErrors);
     }
