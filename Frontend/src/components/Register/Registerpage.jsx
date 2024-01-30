@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 const RegisterPage = () => {
+  
+  
   const [formData, setFormData] = useState({
-    name: '',
-    phoneNumber: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({
-    name: '',
-    phoneNumber: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -26,59 +28,95 @@ const RegisterPage = () => {
     });
     setErrors({
       ...errors,
-      [name]: '',
+      [name]: "",
     });
   };
 
-  const handleSubmit = (e) => {
+  const initialFormData = {
+    name: '',
+    phoneNumber: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setErrors({
+      name: '',
+      phoneNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    axios.post('http://localhost:5000/AttendanceApp')
-    .then ((response)=>{
-      users(response.data)
-    })
 
     let formIsValid = true;
     const newErrors = { ...errors };
 
     if (!formData.name) {
       formIsValid = false;
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
 
     if (!formData.phoneNumber) {
       formIsValid = false;
-      newErrors.phoneNumber = 'Phone number is required';
+      newErrors.phoneNumber = "Phone number is required";
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
       formIsValid = false;
-      newErrors.phoneNumber = 'Invalid phone number';
+      newErrors.phoneNumber = "Invalid phone number";
     }
 
     if (!formData.email) {
       formIsValid = false;
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       formIsValid = false;
-      newErrors.email = 'Invalid email address';
+      newErrors.email = "Invalid email address";
     }
 
     if (!formData.password) {
       formIsValid = false;
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
 
     if (!formData.confirmPassword) {
       formIsValid = false;
-      newErrors.confirmPassword = 'Confirm password is required';
+      newErrors.confirmPassword = "Confirm password is required";
     } else if (formData.password !== formData.confirmPassword) {
       formIsValid = false;
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (formIsValid) {
-      // Perform registration logic here
-      
-   
-      console.log('Registration successful');
+      try { 
+        const data = {
+          name: formData.name,
+          phoneNumber: formData.phoneNumber,
+          Email: formData.email,
+          Password: formData.password,
+          ConfirmPassword: formData.confirmPassword,
+        };
+        await axios
+          .post("http://127.0.0.1:5000/api/user/register", data)
+          .then((response) => { 
+           
+            console.log(response.data['data']);
+            resetForm();
+            
+          })
+          .catch((error) => {
+             
+            console.log('some error occurered  ' + error);
+          
+        
+          });
+      } catch (error) {
+        console.log('this is outer block ' + error);
+      } 
     } else {
       setErrors(newErrors);
     }
@@ -90,7 +128,10 @@ const RegisterPage = () => {
         <h2 className="text-3xl font-semibold text-center mb-6">Register</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-600"
+            >
               Name
             </label>
             <input
@@ -99,12 +140,19 @@ const RegisterPage = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`mt-1 p-2 w-full border rounded-md ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 p-2 w-full border rounded-md ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
           <div className="mb-4">
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="phoneNumber"
+              className="block text-sm font-medium text-gray-600"
+            >
               Phone Number
             </label>
             <input
@@ -113,12 +161,19 @@ const RegisterPage = () => {
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
-              className={`mt-1 p-2 w-full border rounded-md ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 p-2 w-full border rounded-md ${
+                errors.phoneNumber ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>
+            )}
           </div>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-600"
+            >
               Email
             </label>
             <input
@@ -127,12 +182,19 @@ const RegisterPage = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`mt-1 p-2 w-full border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 p-2 w-full border rounded-md ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-600"
+            >
               Password
             </label>
             <input
@@ -141,12 +203,19 @@ const RegisterPage = () => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={`mt-1 p-2 w-full border rounded-md ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 p-2 w-full border rounded-md ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
           <div className="mb-4">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-600">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-600"
+            >
               Confirm Password
             </label>
             <input
@@ -155,12 +224,17 @@ const RegisterPage = () => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`mt-1 p-2 w-full border rounded-md ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'}`}
+              className={`mt-1 p-2 w-full border rounded-md ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-300"
+              }`}
             />
-            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
           </div>
           <button
-          
             type="submit"
             className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600"
           >
