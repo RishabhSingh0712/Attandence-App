@@ -6,12 +6,13 @@ import  jwt  from "jsonwebtoken";
 
 const register = async(req,res)=>{
     try {
+        
         //fetch data fron req body
         const {name, phoneNumber, Email,Password,ConfirmPassword} = req.body;
 
         // user exist
         const checkUserExist = await User.findOne({
-            Email});
+           Email: Email});
             if (checkUserExist) {
                 return res.status(400).json(
                     {
@@ -45,7 +46,7 @@ const register = async(req,res)=>{
 
             // user registration
             const userRegistration = await User.create({
-                name, Email, phoneNumber, Password: hashpassword, ConfirmPassword
+               name: name, Email:  Email,phoneNumber: phoneNumber, Password: hashpassword,ConfirmPassword
             });
             
             res.status(201).json(
@@ -92,7 +93,7 @@ const login  = async (req,res)=>{
             )
         }
         // user exist
-        const user = await User.findOne({Email});
+        const user = await User.findOne({Email:Email});
         console.log(user);
         if (!user) {
             return res.status(400).json({
@@ -108,7 +109,7 @@ const login  = async (req,res)=>{
                 Message: "Password not match !!"
             })
         }else{
-            const token = jwt.sign({userId:user.is},
+            const token = jwt.sign({userId:user._id},
                 process.env.JWT_TOKEN,{
                     expiresIn: '365d'
                 })
@@ -125,5 +126,8 @@ const login  = async (req,res)=>{
         
     }
 }
+
+//logout 
+
 
 export {register,login};
