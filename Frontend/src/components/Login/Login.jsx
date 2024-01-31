@@ -71,10 +71,10 @@ const Login = () => {
             }
           })
           .catch((error) => {
-            alert("Password incorrect")
+            alert("User not found or password incorrect")
           });
       } catch (error) {
-        console.log("This is outer block " + error);
+        alert("server not responding please try again later")
       }
     } else {
       setErrors(newErrors);
@@ -84,7 +84,7 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full p-6 bg-white rounded-md shadow-md">
-        <h2 className="text-3xl font-semibold text-center mb-6">Login</h2>
+        <h2 className="text-3xl font-semibold text-center mb-6">Employee Login</h2>
         {isLoggedIn ? (
           <div>
             <p>You are logged in!</p>
@@ -146,7 +146,7 @@ const Login = () => {
               Login
             </button>
             <p className="text-center mt-4">
-              Don't have an account?{" "}
+              New Employee?{" "}
               <Link to="/Registerpage" className="text-blue-500">
                 Register Here
               </Link>
