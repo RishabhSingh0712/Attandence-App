@@ -30,11 +30,13 @@ export default function Home() {
         }
     };
 
-    const handleButtonClick = (action) => {
-        getLocation();
+    const handleButtonClick = async (action) => {
+        await getLocation();
         // Handle the action based on the currentLocation
         console.log(`Button clicked for ${action}. Current location:`, currentLocation);
     };
+
+
 
     return (
         <div className="mx-auto w-full max-w-7xl">
