@@ -5,7 +5,8 @@ import {register,login} from '../Controller/authController.js';
 
 router.post('/register',register)
 router.post ('/login',login)
-// router.post ('/logout',logout)
+// router.get ('/logout',logout)
+
 
 
 export default router
