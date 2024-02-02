@@ -15,7 +15,6 @@ const Login = () => {
     password: "",
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,13 +26,6 @@ const Login = () => {
       ...errors,
       [name]: "",
     });
-  };
-
-  const handleLogout = () => {
-    if (condition) {
-      
-    }
-    setIsLoggedIn(false);
   };
 
   const handleSubmit = (e) => {
@@ -85,17 +77,8 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="max-w-md w-full p-6 bg-white rounded-md shadow-md">
         <h2 className="text-3xl font-semibold text-center mb-6">Employee Login</h2>
-        {isLoggedIn ? (
           <div>
-            <p>You are logged in!</p>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white p-2 rounded-md w-full hover:bg-red-600 mt-4"
-            >
-              Logout
-            </button>
           </div>
-        ) : (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label
@@ -152,7 +135,7 @@ const Login = () => {
               </Link>
             </p>
           </form>
-        )}
+        
       </div>
     </div>
   );
