@@ -104,14 +104,14 @@ const RegisterPage = () => {
         await axios
           .post("http://127.0.0.1:5000/api/user/register", data)
           .then((response) => {
-            if (response.status === 400) {
-              console.log("user already present");
-              
-            } else {
+            if (response.status === 201) {
               alert("Congratulations! User Registered Successfully!!");
               navigate("/login");
+            } else {
+                alert("user already present");
             }
-            console.log(response.data["data"]);
+            
+            // console.log(response.data["data"]);
             resetForm();
           });
       } catch (error) {
