@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 const fetchUser = async(req, res, next) =>{
 
-    const token = req.Header('auth-token')
+    const token = req.header('auth-token')
 
     if(!token){
         return res.status(500).json(
@@ -15,7 +15,7 @@ const fetchUser = async(req, res, next) =>{
     }
 
     try {
-        const {userId} = await jwt.verify(token, process.env.JWT_SECRET);
+        const {userId} = await jwt.verify(token, process.env.JWT_TOKEN);
         req.userId = userId;
         console.log("fetchuser", userId);
         next();
@@ -29,5 +29,6 @@ const fetchUser = async(req, res, next) =>{
         )
     }
 }
+
 
 export default fetchUser;
