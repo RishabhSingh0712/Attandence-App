@@ -14,10 +14,8 @@ const fetchUser = async (req, res, next) => {
   try {
     const { userId } = jwt.verify(token, process.env.JWT_TOKEN);
     req.userId = userId;
-    console.log("fetchuser", userId);
     next();
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       success: false,
       msg: "Please authenticate using a valid token",
