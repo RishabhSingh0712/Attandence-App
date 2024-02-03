@@ -1,34 +1,28 @@
-import 'dotenv/config';
+import "dotenv/config";
 import jwt from "jsonwebtoken";
 
-const fetchUser = async(req, res, next) =>{
+const fetchUser = async (req, res, next) => {
+  const token = req.header("auth-token");
 
-    const token = req.header('auth-token')
+  if (!token) {
+    return res.status(500).json({
+      success: false,
+      msg: "Please authenticate using a valid token",
+    });
+  }
 
-    if(!token){
-        return res.status(500).json(
-            {
-                success: false, 
-                msg:"Please authenticate using a valid token"
-            }
-        )
-    }
-
-    try {
-        const {userId} = await jwt.verify(token, process.env.JWT_TOKEN);
-        req.userId = userId;
-        console.log("fetchuser", userId);
-        next();
-    } catch (error) {
-        console.log(error);
-        res.status(500).json(
-            {
-                success: false,
-                msg:"Please authenticate using a valid token"
-            }
-        )
-    }
-}
-
+  try {
+    const { userId } = jwt.verify(token, process.env.JWT_TOKEN);
+    req.userId = userId;
+    console.log("fetchuser", userId);
+    next();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      msg: "Please authenticate using a valid token",
+    });
+  }
+};
 
 export default fetchUser;
