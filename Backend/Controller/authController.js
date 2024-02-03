@@ -2,7 +2,6 @@ import User from "../model/userModel.js";
 import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import jwt from "jsonwebtoken";
-// import router from "../routes/userRoutes.js";
 
 const register = async (req, res) => {
   try {
@@ -104,6 +103,7 @@ const login = async (req, res) => {
       });
       res.status(201).json({
         token: token,
+        user_info: user,
       });
     }
   } catch (error) {
@@ -115,33 +115,5 @@ const login = async (req, res) => {
   }
 };
 
-//logout
- 
-const logout = (req, res) => {
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-  
-    if (revokedTokens.includes(token)) {
-      return res.status(401).json({
-        success: false,
-        message: "Token has already been revoked. User is already logged out.",
-      });
-    }
 
-    res.status(200).json({
-      success: true,
-      message: "Logout successful",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error,
-    });
-  }
-};
-
-
-
-
-export { register, login,logout};
+export { register, login };
