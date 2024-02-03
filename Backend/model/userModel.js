@@ -1,12 +1,24 @@
 import {model,Schema} from "mongoose";
 
+const attendanceSchema = new Schema({
+  checkInTime: {
+    type: Date,
+    default: null, 
+  },
+  checkOutTime: {
+    type: Date,
+    default: null, 
+  },
+  location: {
+    type: String,
+    default: null,
+  },
+});f
 const userSchema = new Schema(
   {
     name: {
       type: String,
       required: true,
-      unique: true,
-      lowercase: true,
     },
     phoneNumber: { 
       type: Number,
@@ -28,6 +40,7 @@ const userSchema = new Schema(
         type: String,
         required: [true, "Password is required"],
     },
+    attendance: [attendanceSchema]
   },
 );
 
