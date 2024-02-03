@@ -115,9 +115,6 @@ const login = async (req, res) => {
   }
 };
 
-const officeIn = async(req,res)={
-
-}
 
 
 export { register, login };

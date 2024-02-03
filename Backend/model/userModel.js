@@ -13,7 +13,7 @@ const attendanceSchema = new Schema({
     type: String,
     default: null,
   },
-});f
+});
 const userSchema = new Schema(
   {
     name: {
