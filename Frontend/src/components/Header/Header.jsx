@@ -3,41 +3,33 @@ import { Link, NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
 export default function Header() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userInfo, setUserInfo] = useState();
-    const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState();
+  const location = useLocation();
 
+  //logout process
 
-  
-  
   useEffect(() => {
-    // Check if there is a token in localStorage whenever the route changes
-    const token = localStorage.getItem("token"); 
+    const token = localStorage.getItem("token");
     if (token && token !== "") {
-        
-    // Get the string from local storage
-const storedUserInfoString = localStorage.getItem('user_info');
-
-// Parse the string back to a JSON object using JSON.parse
-const storedUserInfo = JSON.parse(storedUserInfoString);
+      const storedUserInfoString = localStorage.getItem("user_info");
+      const storedUserInfo = JSON.parse(storedUserInfoString);
       setIsLoggedIn(true);
       setUserInfo(storedUserInfo);
     } else {
-        setUserInfo();
+      setUserInfo();
       setIsLoggedIn(false);
     }
-  }, [location]); 
+  }, [location]);
 
-    // Function to handle logout
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user_info");
-        // Update isLoggedIn state to false
-        setIsLoggedIn(false);
-      };
- 
+  // Function to handle logout
 
- 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user_info");
+    setIsLoggedIn(false);
+  };
+
   return (
     <header className="shadow sticky z-50 top-0">
       <nav className="bg-white border-gray-200 px-4 lg:px-6 py-2.5">
@@ -50,23 +42,11 @@ const storedUserInfo = JSON.parse(storedUserInfoString);
             />
           </Link>
           <div className="flex items-center lg:order-2">
-          {isLoggedIn ? ( <NavLink
-                  to="/"
-                  activeClassName="text-orange-700"
-                  className="block py-2 pr-4 pl-3 duration-200
-                 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0"
-                >
-                  {userInfo.name}
-                </NavLink>
-          ) : (
-            <div></div>
-          )
-          }
             {isLoggedIn ? (
               <NavLink
-                 onClick={handleLogout}
+                onClick={handleLogout}
                 className="text-white bg-blue-500 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-                activeClassName="text-orange-700"
+                
               >
                 Logout
               </NavLink>
@@ -74,10 +54,22 @@ const storedUserInfo = JSON.parse(storedUserInfoString);
               <NavLink
                 to="/login"
                 className="text-white bg-blue-500 hover:bg-orange-800 focus:ring-4 focus:ring-orange-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 focus:outline-none"
-                activeClassName="text-orange-700"
+                
               >
                 Login
               </NavLink>
+            )}
+            {isLoggedIn ? (
+              <NavLink
+                to="/"
+                
+                className="block py-2 pr-4 pl-3 duration-200
+                 text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0"
+              >
+                {userInfo.name.toUpperCase()}
+              </NavLink>
+            ) : (
+              <div></div>
             )}
           </div>
 
@@ -89,7 +81,7 @@ const storedUserInfo = JSON.parse(storedUserInfoString);
               <li>
                 <NavLink
                   to="/"
-                  activeClassName="text-orange-700"
+                  
                   className="block py-2 pr-4 pl-3 duration-200
                  text-gray-700 border-b border-gray-100 hover:bg-gray-50 lg:hover:bg-transparent lg:border-0 hover:text-orange-700 lg:p-0"
                 >
