@@ -60,7 +60,6 @@ const Login = () => {
               window.localStorage.setItem("user_info",userInfoString);
               navigate("/");
             } else {
-              
               alert("Error, login failed!!");
             }
           })
