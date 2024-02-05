@@ -4,12 +4,24 @@ export default function Home() {
     const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
     const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
     const [currentLocation, setCurrentLocation] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
         const intervalId = setInterval(() => {
             setCurrTime(new Date().toLocaleTimeString());
             setCurrDate(new Date().toLocaleDateString());
         }, 1000);
+        // user agar login nhi hai tab ka code likha hai
+        // if (!user) {
+        //     console.error("Do not use button login first");
+            
+        // }else{
+        //     console.log("click button");
+        // }
+
+
+        
+        setIsLoggedIn(true);
 
         return () => clearInterval(intervalId);
     }, []);
@@ -29,9 +41,13 @@ export default function Home() {
             console.error('Geolocation is not supported by this browser.');
         }
     };
-
     const handleButtonClick = async (action) => {
-        await getLocation();
+        if (!isLoggedIn) {
+            console.log('User is not logged in. Please log in to perform this action.');
+            return;
+        }
+
+        getLocation();
         // Handle the action based on the currentLocation
         console.log(`Button clicked for ${action}. Current location:`, currentLocation);
     };
@@ -57,13 +73,7 @@ export default function Home() {
                 >
                     Office In
                 </button>
-                <button
-                    type="button"
-                    onClick={() => handleButtonClick('Office Out')}
-                    className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-                >
-                    Office Out
-                </button>
+                
                 <button
                     type="button"
                     onClick={() => handleButtonClick('Half Day')}
@@ -77,6 +87,13 @@ export default function Home() {
                     className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
                 >
                     Work From Home
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleButtonClick('Office Out')}
+                    className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+                >
+                    Office Out
                 </button>
             </div>
         </div>
