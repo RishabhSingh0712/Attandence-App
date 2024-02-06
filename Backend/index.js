@@ -4,11 +4,13 @@ import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 import 'dotenv/config.js';
 
+
 const app = express();
 const PORT = process.env.PORT || 6000;
 
 //middleware
 app.use(express.json());
+
 
 app.use(cors());
 
