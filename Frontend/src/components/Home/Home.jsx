@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Home() {
     const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
     const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
-    const [currentLocation, setCurrentLocation] = useState(null);
+    const [currentLocation, setCurrentLocation] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
@@ -11,16 +12,7 @@ export default function Home() {
             setCurrTime(new Date().toLocaleTimeString());
             setCurrDate(new Date().toLocaleDateString());
         }, 1000);
-        // user agar login nhi hai tab ka code likha hai
-        // if (!user) {
-        //     console.error("Do not use button login first");
-            
-        // }else{
-        //     console.log("click button");
-        // }
-
-
-        
+      
         setIsLoggedIn(true);
 
         return () => clearInterval(intervalId);
@@ -48,12 +40,32 @@ export default function Home() {
         }
 
         getLocation();
-        // Handle the action based on the currentLocation
-        console.log(`Button clicked for ${action}. Current location:`, currentLocation);
-    };
-
-
-
+        
+        if (currentLocation) {
+            try {
+              
+              const response = await axios.post('http://127.0.0.1:5000/api/user/Attendance', {
+                _id: 'user_id', 
+                email: 'user_email',
+                
+                action,
+                
+                attendanceDetails: {
+                  checkInTime: new Date(),
+                  checkInOut: new Date(),
+                  location: currentLocation,
+                },
+              });
+      
+              console.log(response.data.message);
+              window.alert(`Employee ${action}.`);
+            } catch (error) {
+              window.alert('Error submitting attendance. Please try again.');
+            }
+          } else {
+            window.alert('Error getting location. Please try again.');
+          }
+        };
     return (
         <div className="mx-auto w-full max-w-7xl">
             <aside className="relative overflow-hidden text-black rounded-lg sm:mx-16 mx-2"></aside>
