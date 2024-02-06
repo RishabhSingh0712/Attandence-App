@@ -115,6 +115,35 @@ const login = async (req, res) => {
   }
 };
 
+//attendance
+
+const Attendance = async (req, res) => {
+  try {
+    const { _id, email } = req.body;
+    const user = await User.findById(_id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const attendanceDetails = {
+      checkInTime: new Date(),
+      checkInOut: new Date(),
+      location: "Default Location",
+    };
+
+    // Update attendance details
+    user.attendance.push(attendanceDetails);
+
+    // Save the updated user with new attendance details
+    await user.save();
+
+    return res.status(200).json({ message: "Attendance updated successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
-export { register, login };
+export { register, login,Attendance };
