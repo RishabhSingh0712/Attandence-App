@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
 export default function Home() {
     const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
     const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
@@ -45,7 +46,7 @@ export default function Home() {
             try {
               
               const response = await axios.post('http://127.0.0.1:5000/api/user/Attendance', {
-                _id: 'user_id', 
+                _id: '_id', 
                 email: 'user_email',
                 
                 action,
