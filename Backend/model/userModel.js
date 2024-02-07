@@ -44,5 +44,5 @@ const userSchema = new Schema({
   attendance: [attendanceSchema],
 });
 
-const User = model("user", userSchema);
+const User = model("user", userSchema);3
 export default User;
