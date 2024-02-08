@@ -9,9 +9,13 @@ const attendanceSchema = new Schema({
     type: Date,
     default: null, 
   },
-  location: {
-    type: String,
-    default: null,
+  latitude: {
+    type: Number,
+    default: 0,
+  },
+  longitude: {
+    type: Number,
+    default: 0,
   },
 });
 const userSchema = new Schema({
