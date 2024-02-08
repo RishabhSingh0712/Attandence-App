@@ -119,17 +119,17 @@ const login = async (req, res) => {
 
 const Attendance = async (req, res) => {
   try {
-    const { _id, email } = req.body;
+    const { _id, location } = req.body;
     const user = await User.findById(_id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
-    }
-
+    } 
     const attendanceDetails = {
       checkInTime: new Date(),
-      checkInOut: new Date(),
-      location: "Default Location",
+      checkInOut: null,
+      latitude: location.latitude, 
+      longitude: location.longitude, 
     };
 
     // Update attendance details
