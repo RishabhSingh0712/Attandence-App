@@ -115,9 +115,55 @@ const login = async (req, res) => {
   }
 };
 
-//attendance
 
-const Attendance = async (req, res) => {
+
+// attendance
+
+const attendance = async (req, res) => {
+  const { _id, type, location } = req.body;
+  const user = await User.findById(_id);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const attendanceDetails = {
+    checkInTime: new Date(),
+    latitude: location.latitude,
+    longitude: location.longitude,
+  };
+
+  switch (type) {
+    case 'Office In':
+      user.officeAttendance.push(attendanceDetails);
+      break;
+    case 'Half Day':
+      user.halfDayAttendance.push(attendanceDetails);
+      break;
+    case 'Work From Home':
+      user.workFromHomeAttendance.push(attendanceDetails);
+      break;
+    case 'Office Out':
+      const lastOfficeAttendance = user.officeAttendance.pop(); // Get the last office attendance
+      if (lastOfficeAttendance) {
+        lastOfficeAttendance.checkOutTime = new Date();
+        user.officeAttendance.push(lastOfficeAttendance); // Update the checkOutTime
+      }
+      break;
+    default:
+      return res.status(400).json({ message: "Invalid attendance type" });
+  }
+
+  await user.save();
+
+  return res.status(200).json({ message: "Attendance updated successfully" });
+};
+
+
+
+// halfday
+
+const halfDayAttendance = async (req, res) => {
   try {
     const { _id, location } = req.body;
     const user = await User.findById(_id);
@@ -125,15 +171,19 @@ const Attendance = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     } 
-    const attendanceDetails = {
+
+    const halfDayAttendanceDetails = {
       checkInTime: new Date(),
-      checkInOut: null,
       latitude: location.latitude, 
       longitude: location.longitude, 
     };
 
     // Update attendance details
-    user.attendance.push(attendanceDetails);
+    const lastHalfDayAttendance = user.halfDayAttendance.pop(); // Get the last half day attendance
+    if (lastHalfDayAttendance) {
+      lastHalfDayAttendance.checkOutTime = new Date();
+      user.halfDayAttendance.push(lastHalfDayAttendance); // Update the checkOutTime
+    }
 
     // Save the updated user with new attendance details
     await user.save();
@@ -146,4 +196,35 @@ const Attendance = async (req, res) => {
 };
 
 
-export { register, login,Attendance };
+// work from home
+
+
+const workFromHomeAttendance = async (req, res) => {
+  try {
+    const { _id, location } = req.body;
+    const user = await User.findById(_id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    } 
+    const workFromHomeAttendanceDetails = {
+      checkInTime: new Date(),
+      latitude: location.latitude, 
+      longitude: location.longitude, 
+    };
+
+    // Update attendance details
+    user.workFromHomeAttendance.push(workFromHomeAttendanceDetails);
+
+    // Save the updated user with new attendance details
+    await user.save();
+
+    return res.status(200).json({ message: "Attendance updated successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+export { register, login,attendance };
