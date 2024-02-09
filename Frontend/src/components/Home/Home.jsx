@@ -35,7 +35,7 @@ export default function Home() {
     }
   }, [location]);
 
-  const getUserLocationAndCheckIn = async () => {
+  const getUserLocationAndCheckIn = async (attendanceType) => {
     if (navigator.geolocation) {
       try {
         const position = await new Promise((resolve, reject) => {
@@ -44,9 +44,10 @@ export default function Home() {
 
         const { latitude, longitude } = position.coords;
         const response = await axios.post(
-          "http://127.0.0.1:5000/api/user/Attendance",
+          "http://127.0.0.1:5000/api/user/attendance",
           {
             _id: userInfo._id,
+            type: attendanceType,
             location: {
               latitude: latitude,
               longitude: longitude,
@@ -61,17 +62,17 @@ export default function Home() {
     }
   };
 
-  const handleButtonClick = async () => {
+  const handleButtonClick = async (attendanceType) => {
     if (!isLoggedIn) {
       alert("Please login!!");
       return;
     }
 
     try {
-      await getUserLocationAndCheckIn();
+      await getUserLocationAndCheckIn(attendanceType);
       alert("Attendance Done!!");
     } catch (error) {
-      alert("Error submitting attendance. Please try again.");
+      window.alert("Error submitting attendance. Please try again.");
     } finally {
     }
   };
