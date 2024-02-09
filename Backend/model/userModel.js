@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-const attendanceSchema = new Schema({
+const officeAttendanceSchema = new Schema({
   checkInTime: {
     type: Date,
     default: null, 
@@ -17,7 +17,46 @@ const attendanceSchema = new Schema({
     type: Number,
     default: 0,
   },
+  
 });
+//half day
+
+const halfDaySchema = new Schema({
+  checkInTime: {
+    type: Date,
+    default: null, 
+  },
+  checkOutTime: {
+    type: Date,
+    default: null, 
+  },
+  latitude: {
+    type: Number,
+    default: 0,
+  },
+  longitude: {
+    type: Number,
+    default: 0,
+  }
+}) 
+
+//work from home
+
+const workFromHomeSchema = new Schema({
+  checkInTime: {
+    type: Date,
+    default: null, 
+  },
+  latitude: {
+    type: Number,
+    default: 0,
+  },
+  longitude: {
+    type: Number,
+    default: 0,
+  }
+}) 
+
 const userSchema = new Schema({
   name: {
     type: String,
@@ -45,7 +84,9 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Password is required"],
   },
-  attendance: [attendanceSchema],
+  officeAttendance: [officeAttendanceSchema],
+  halfDayAttendance: [halfDaySchema],
+  workFromHomeAttendance: [workFromHomeSchema],
 });
 
 const User = model("user", userSchema);3
