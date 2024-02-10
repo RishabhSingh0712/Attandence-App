@@ -3,11 +3,11 @@ import { model, Schema } from "mongoose";
 const officeAttendanceSchema = new Schema({
   checkInTime: {
     type: Date,
-    default: null, 
+    default: null,
   },
   checkOutTime: {
     type: Date,
-    default: null, 
+    default: null,
   },
   latitude: {
     type: Number,
@@ -17,18 +17,17 @@ const officeAttendanceSchema = new Schema({
     type: Number,
     default: 0,
   },
-  
 });
 //half day
 
 const halfDaySchema = new Schema({
   checkInTime: {
     type: Date,
-    default: null, 
+    default: null,
   },
   checkOutTime: {
     type: Date,
-    default: null, 
+    default: null,
   },
   latitude: {
     type: Number,
@@ -37,15 +36,15 @@ const halfDaySchema = new Schema({
   longitude: {
     type: Number,
     default: 0,
-  }
-}) 
+  },
+});
 
 //work from home
 
 const workFromHomeSchema = new Schema({
   checkInTime: {
     type: Date,
-    default: null, 
+    default: null,
   },
   latitude: {
     type: Number,
@@ -54,8 +53,8 @@ const workFromHomeSchema = new Schema({
   longitude: {
     type: Number,
     default: 0,
-  }
-}) 
+  },
+});
 
 const userSchema = new Schema({
   name: {
@@ -89,5 +88,6 @@ const userSchema = new Schema({
   workFromHomeAttendance: [workFromHomeSchema],
 });
 
-const User = model("user", userSchema);3
+const User = model("user", userSchema);
+3;
 export default User;
