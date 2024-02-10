@@ -52,8 +52,11 @@ export default function Home() {
               latitude: latitude,
               longitude: longitude,
             },
+            date: currDate,
+            time: currTime,
           }
         );
+        console.log(currDate,currTime);
       } catch (error) {
         console.log("Error getting location:", error);
       }
@@ -100,7 +103,7 @@ export default function Home() {
       <div className="space-x-10 mt-10  ">
         <button
           type="button"
-          onClick={() => handleButtonClick("Office In")}
+          onClick={() => handleButtonClick("office")}
           className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
         >
           Office In
@@ -108,14 +111,14 @@ export default function Home() {
 
         <button
           type="button"
-          onClick={() => handleButtonClick("Half Day")}
+          onClick={() => handleButtonClick("halfDay")}
           className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
         >
           Half Day
         </button>
         <button
           type="button"
-          onClick={() => handleButtonClick("Work From Home")}
+          onClick={() => handleButtonClick("workFromHome")}
           className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
         >
           Work From Home
