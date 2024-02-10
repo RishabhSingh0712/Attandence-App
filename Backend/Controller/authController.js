@@ -115,7 +115,23 @@ const login = async (req, res) => {
   }
 };
 
+const isAttendanceRecordExistsForToday = (attendanceArray) => {
+  // Check if attendanceArray is defined and not empty
+  if (attendanceArray && attendanceArray.length > 0) {
+    const currentDate = new Date();
+    const todayDateString = currentDate.toISOString().split("T")[0];
 
+    return attendanceArray.some((attendance) => {
+      const attendanceDateString = attendance.checkInTime
+        .toISOString()
+        .split("T")[0];
+      return attendanceDateString === todayDateString;
+    });
+  } else {
+    // Return false if attendanceArray is undefined or empty
+    return false;
+  }
+};
 
 // attendance
 
@@ -127,28 +143,82 @@ const attendance = async (req, res) => {
     return res.status(404).json({ message: "User not found" });
   }
 
+  if (type == "Office Out") {
+    let attendanceType = "";
+
+    let isAttendanceRecordExists = isAttendanceRecordExistsForToday(
+      user["officeAttendance"]
+    );
+
+    if (isAttendanceRecordExists) {
+      attendanceType = "office";
+    } else {
+      isAttendanceRecordExists = isAttendanceRecordExistsForToday(
+        user["halfDayAttendance"]
+      );
+      if (isAttendanceRecordExists) {
+        attendanceType = "halfDay";
+      } else {
+        isAttendanceRecordExists = isAttendanceRecordExistsForToday(
+          user["workFromHomeAttendance"]
+        );
+        if (isAttendanceRecordExists) {
+          attendanceType = "workFromHome";
+        } else {
+          attendanceType = "";
+        }
+      }
+    }
+    if (attendanceType == "") {
+      return res.status(400).json({ message: "No attendance found for today" });
+    }
+    // Find the specific attendance record for today
+    const todayAttendanceIndex = user[attendanceType + "Attendance"].findIndex(
+      (attendance) => {
+        const attendanceDateString = attendance.checkInTime
+          .toISOString()
+          .split("T")[0];
+        const todayDateString = new Date().toISOString().split("T")[0];
+        return attendanceDateString === todayDateString;
+      }
+    );
+
+    // Update the checkOutTime for the found attendance record
+    if (todayAttendanceIndex !== -1) {
+      user[attendanceType + "Attendance"][todayAttendanceIndex].checkOutTime =
+        new Date();
+      await user.save();
+      return res
+        .status(200)
+        .json({ message: "Attendance updated successfully" });
+    } else {
+      return res.status(400).json({ message: "No attendance found for today" });
+    }
+  }
+  const isAttendanceRecordExists = isAttendanceRecordExistsForToday(
+    user[type.toLowerCase() + "Attendance"]
+  );
+
+  // Assuming checkInTime is a Date object in GMT
+  const checkInTimeGMT = new Date(); // replace this with your actual Date object
+
   const attendanceDetails = {
-    checkInTime: new Date(),
+    checkInTime: checkInTimeGMT,
     latitude: location.latitude,
     longitude: location.longitude,
   };
 
   switch (type) {
-    case 'Office In':
+    case "office":
       user.officeAttendance.push(attendanceDetails);
       break;
-    case 'Half Day':
+    case "halfDay":
       user.halfDayAttendance.push(attendanceDetails);
       break;
-    case 'Work From Home':
+    case "workFromHome":
       user.workFromHomeAttendance.push(attendanceDetails);
       break;
-    case 'Office Out':
-      const lastOfficeAttendance = user.officeAttendance.pop(); // Get the last office attendance
-      if (lastOfficeAttendance) {
-        lastOfficeAttendance.checkOutTime = new Date();
-        user.officeAttendance.push(lastOfficeAttendance); // Update the checkOutTime
-      }
+    case "Office Out":
       break;
     default:
       return res.status(400).json({ message: "Invalid attendance type" });
@@ -160,71 +230,4 @@ const attendance = async (req, res) => {
 };
 
 
-
-// halfday
-
-const halfDayAttendance = async (req, res) => {
-  try {
-    const { _id, location } = req.body;
-    const user = await User.findById(_id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    } 
-
-    const halfDayAttendanceDetails = {
-      checkInTime: new Date(),
-      latitude: location.latitude, 
-      longitude: location.longitude, 
-    };
-
-    // Update attendance details
-    const lastHalfDayAttendance = user.halfDayAttendance.pop(); // Get the last half day attendance
-    if (lastHalfDayAttendance) {
-      lastHalfDayAttendance.checkOutTime = new Date();
-      user.halfDayAttendance.push(lastHalfDayAttendance); // Update the checkOutTime
-    }
-
-    // Save the updated user with new attendance details
-    await user.save();
-
-    return res.status(200).json({ message: "Attendance updated successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-
-// work from home
-
-
-const workFromHomeAttendance = async (req, res) => {
-  try {
-    const { _id, location } = req.body;
-    const user = await User.findById(_id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    } 
-    const workFromHomeAttendanceDetails = {
-      checkInTime: new Date(),
-      latitude: location.latitude, 
-      longitude: location.longitude, 
-    };
-
-    // Update attendance details
-    user.workFromHomeAttendance.push(workFromHomeAttendanceDetails);
-
-    // Save the updated user with new attendance details
-    await user.save();
-
-    return res.status(200).json({ message: "Attendance updated successfully" });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-
-export { register, login,attendance };
+export { register, login, attendance };
