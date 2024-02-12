@@ -116,7 +116,6 @@ const login = async (req, res) => {
 };
 
 const isAttendanceRecordExistsForToday = (attendanceArray) => {
-  // Check if attendanceArray is defined and not empty
   if (attendanceArray && attendanceArray.length > 0) {
     const currentDate = new Date();
     const todayDateString = currentDate.toISOString().split("T")[0];
@@ -128,7 +127,6 @@ const isAttendanceRecordExistsForToday = (attendanceArray) => {
       return attendanceDateString === todayDateString;
     });
   } else {
-    // Return false if attendanceArray is undefined or empty
     return false;
   }
 };
@@ -172,7 +170,7 @@ const attendance = async (req, res) => {
     if (attendanceType == "") {
       return res.status(400).json({ message: "No attendance found for today" });
     }
-    // Find the specific attendance record for today
+   
     const todayAttendanceIndex = user[attendanceType + "Attendance"].findIndex(
       (attendance) => {
         const attendanceDateString = attendance.checkInTime
@@ -200,8 +198,7 @@ const attendance = async (req, res) => {
   );
 
   // Assuming checkInTime is a Date object in GMT
-  const checkInTimeGMT = new Date(); // replace this with your actual Date object
-
+  const checkInTimeGMT = new Date(); 
   const attendanceDetails = {
     checkInTime: checkInTimeGMT,
     latitude: location.latitude,
