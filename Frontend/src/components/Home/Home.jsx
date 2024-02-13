@@ -56,7 +56,6 @@ export default function Home() {
             time: currTime,
           }
         );
-        console.log(currDate,currTime);
       } catch (error) {
         console.log("Error getting location:", error);
       }
