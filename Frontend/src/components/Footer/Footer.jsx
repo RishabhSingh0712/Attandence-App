@@ -20,13 +20,13 @@ export default function Footer() {
       })
         .then((response) => response.json())
         .then((data) => {
+          // Update state with the fetched user data
           setUserData({
-            name: userInfo.name,
-            email: userInfo.Email,
-            checkInTime: userInfo.checkInTime, 
-            checkOutTime: userInfo.checkOutTime, 
+            name: data.name,
+            email: data.Email,
+            inTime: data.inTime, // replace with actual field from the backend
+            outTime: data.outTime, // replace with actual field from the backend
           });
-          console.log("setUserData");
         })
         .catch((error) => {
           console.error("Error fetching user data:", error);
@@ -38,12 +38,12 @@ export default function Footer() {
     <footer className="bg-white">
       <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
         <hr className="my-6 border-gray-200 sm:mx-auto lg:my-8" />
+        {/* Display user data in the component */}
         <div className="flex space-x-4 mb-20 sm:flex sm:items-center sm:justify-between">
-          {/* <p className="flex-1">Date {userData.date}</p> */}
           <p className="flex-1">Name {userData.name}</p>
           <p className="flex-1">Email {userData.email}</p>
-          <p className="flex-1">checkInTime {userData.checkInTime}</p>
-          <p className="flex-1">checkOutTime {userData.checkOutTime}</p>
+          <p className="flex-1">In Time {userData.inTime}</p>
+          <p className="flex-1">Out Time {userData.outTime}</p>
         </div>
 
         <div className="sm:flex sm:items-center sm:justify-between">
