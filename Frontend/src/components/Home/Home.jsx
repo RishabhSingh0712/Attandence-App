@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import * as XLSX from "xlsx";
 
 export default function Home() {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
@@ -37,16 +38,18 @@ export default function Home() {
   }, [location]);
 
   useEffect(() => {
-    const storedAttendanceData = JSON.parse(localStorage.getItem("attendance_data")) || [];
-    // Ensure that the attendanceData array in localStorage contains at most the last 10 entries
-    const trimmedAttendanceData = storedAttendanceData.slice(-10);
+    const storedAttendanceData =
+      JSON.parse(localStorage.getItem("attendance_data")) || [];
+    const trimmedAttendanceData = storedAttendanceData.slice(-7);
     setAttendanceData(trimmedAttendanceData);
   }, []);
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
-    // Store only the last 10 entries in localStorage
-    const trimmedAttendanceData = newAttendanceData.slice(-10);
-    localStorage.setItem("attendance_data", JSON.stringify(trimmedAttendanceData));
+    const trimmedAttendanceData = newAttendanceData.slice(-7);
+    localStorage.setItem(
+      "attendance_data",
+      JSON.stringify(trimmedAttendanceData)
+    );
   };
 
   const formatDate = (dateString) => {
@@ -106,6 +109,26 @@ export default function Home() {
     } catch (error) {
       window.alert("Error submitting attendance. Please try again.");
     }
+  };
+
+  const exportToExcel = () => {
+    const data = attendanceData.map((attendance, index) => ({
+      "Sr. No.": index + 1,
+      Date: attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A",
+      Name: userInfo ? userInfo.name.toUpperCase() : "N/A",
+      Email: userInfo ? userInfo.Email : "N/A",
+      "In Time": attendance.checkInTime
+        ? formatTime(attendance.checkInTime)
+        : "N/A",
+      "Out Time": attendance.checkOutTime
+        ? formatTime(attendance.checkOutTime)
+        : "N/A",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
+    XLSX.writeFile(wb, "attendance_data.xlsx");
   };
 
   return (
@@ -176,16 +199,20 @@ export default function Home() {
               <tr key={index}>
                 <td className="border border-green-600 p-2">{index + 1}</td>
                 <td className="border border-green-600 p-2">
-                  {formatDate(attendance.checkInTime)}
+                  {attendance.checkInTime
+                    ? formatDate(attendance.checkInTime)
+                    : "N/A"}
                 </td>
                 <td className="border border-green-600 p-2">
-                  {userInfo.name.toUpperCase()}
+                  {userInfo ? userInfo.name.toUpperCase() : "N/A"}
                 </td>
                 <td className="border border-green-600 p-2">
-                  {userInfo.Email}
+                  {userInfo ? userInfo.Email : "N/A"}
                 </td>
                 <td className="border border-green-600 p-2">
-                  {formatTime(attendance.checkInTime)}
+                  {attendance.checkInTime
+                    ? formatTime(attendance.checkInTime)
+                    : "N/A"}
                 </td>
                 <td className="border border-green-600 p-2">
                   {attendance.checkOutTime
@@ -196,6 +223,13 @@ export default function Home() {
             ))}
           </tbody>
         </table>
+        <button
+          type="button"
+          onClick={exportToExcel}
+          className="bg-blue-500 text-white p-2 rounded-md hover:bg-green-600 mt-6"
+        >
+          Export to Excel
+        </button>
       </div>
     </div>
   );
