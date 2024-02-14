@@ -61,7 +61,6 @@ const register = async (req, res) => {
     });
   }
 };
-
 // Login part
 
 const login = async (req, res) => {
@@ -170,7 +169,7 @@ const attendance = async (req, res) => {
     if (attendanceType == "") {
       return res.status(400).json({ message: "No attendance found for today" });
     }
-   
+
     const todayAttendanceIndex = user[attendanceType + "Attendance"].findIndex(
       (attendance) => {
         const attendanceDateString = attendance.checkInTime
@@ -181,7 +180,6 @@ const attendance = async (req, res) => {
       }
     );
 
-    // Update the checkOutTime for the found attendance record
     if (todayAttendanceIndex !== -1) {
       user[attendanceType + "Attendance"][todayAttendanceIndex].checkOutTime =
         new Date();
@@ -198,7 +196,7 @@ const attendance = async (req, res) => {
   );
 
   // Assuming checkInTime is a Date object in GMT
-  const checkInTimeGMT = new Date(); 
+  const checkInTimeGMT = new Date();
   const attendanceDetails = {
     checkInTime: checkInTimeGMT,
     latitude: location.latitude,
@@ -225,6 +223,5 @@ const attendance = async (req, res) => {
 
   return res.status(200).json({ message: "Attendance updated successfully" });
 };
-
 
 export { register, login, attendance };
