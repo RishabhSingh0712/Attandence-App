@@ -3,7 +3,6 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 
-
 export default function Home() {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
@@ -11,6 +10,7 @@ export default function Home() {
 
   const [userInfo, setUserInfo] = useState({});
   const [attendanceData, setAttendanceData] = useState([]);
+  const [selectedAttendance, setSelectedAttendance] = useState(null);
 
   const location = useLocation();
 
@@ -53,7 +53,6 @@ export default function Home() {
     );
   };
 
-
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     const date = new Date(dateString);
@@ -87,10 +86,17 @@ export default function Home() {
           }
         );
 
-        // Update the attendanceData state with the new attendance
         const newAttendanceData = [...attendanceData, response.data];
         setAttendanceData(newAttendanceData);
         saveAttendanceDataToLocalStorage(newAttendanceData);
+
+        const userDetails = {
+          name: userInfo ? userInfo.name.toUpperCase() : "N/A",
+          email: userInfo ? userInfo.Email : "N/A",
+          checkInTime: response.data.checkInTime, // Update this line
+          checkOutTime: response.data.checkOutTime, // Update this line
+        };
+        setSelectedAttendance({ type: attendanceType, user: userDetails });
       } catch (error) {
         console.log("Error getting location:", error);
       }
@@ -184,6 +190,30 @@ export default function Home() {
           Office Out
         </button>
       </div>
+
+      {selectedAttendance && (
+        <div>
+          <p>
+            <b>Name:</b> {selectedAttendance.user.name}
+          </p>
+          <p>
+            <b>Email:</b> {selectedAttendance.user.email}
+          </p>
+          <p>
+            <b>Check In Time:</b>{" "}
+            {selectedAttendance.user.checkInTime
+              ? formatTime(selectedAttendance.user.checkInTime)
+              : "N/A"}
+          </p>
+          <p>
+            <b>Check Out Time:</b>{" "}
+            {selectedAttendance.user.checkOutTime
+              ? formatTime(selectedAttendance.user.checkOutTime)
+              : "N/A"}
+          </p>
+        </div>
+      )}
+
       <div className="mt-10">
         <table className="mt-5 w-full border-collapse border border-green-800">
           <thead>
