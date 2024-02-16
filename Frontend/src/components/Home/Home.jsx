@@ -3,6 +3,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 
+
 export default function Home() {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
@@ -40,17 +41,18 @@ export default function Home() {
   useEffect(() => {
     const storedAttendanceData =
       JSON.parse(localStorage.getItem("attendance_data")) || [];
-    const trimmedAttendanceData = storedAttendanceData.slice(-7);
+    const trimmedAttendanceData = storedAttendanceData.slice(-1);
     setAttendanceData(trimmedAttendanceData);
   }, []);
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
-    const trimmedAttendanceData = newAttendanceData.slice(-7);
+    const trimmedAttendanceData = newAttendanceData.slice(-1);
     localStorage.setItem(
       "attendance_data",
       JSON.stringify(trimmedAttendanceData)
     );
   };
+
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
