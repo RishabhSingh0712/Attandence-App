@@ -132,6 +132,8 @@ const isAttendanceRecordExistsForToday = (attendanceArray) => {
 
 // attendance
 
+
+
 const attendance = async (req, res) => {
   const { _id, type, location } = req.body;
   const user = await User.findById(_id);
@@ -184,9 +186,10 @@ const attendance = async (req, res) => {
       user[attendanceType + "Attendance"][todayAttendanceIndex].checkOutTime =
         new Date();
       await user.save();
-      return res
-        .status(200)
-        .json({ message: "Attendance updated successfully" });
+
+      // Update: Include checkInTime and checkOutTime in the response
+      const { checkInTime, checkOutTime } = user[attendanceType + "Attendance"][todayAttendanceIndex];
+      return res.status(200).json({ message: "Attendance updated successfully", checkInTime, checkOutTime });
     } else {
       return res.status(400).json({ message: "No attendance found for today" });
     }
@@ -221,7 +224,12 @@ const attendance = async (req, res) => {
 
   await user.save();
 
-  return res.status(200).json({ message: "Attendance updated successfully" });
+  // Update: Include checkInTime and checkOutTime in the response
+  const { checkInTime, checkOutTime } = attendanceDetails;
+  return res.status(200).json({ message: "Attendance updated successfully", checkInTime, checkOutTime });
 };
+
+
+
 
 export { register, login, attendance };
