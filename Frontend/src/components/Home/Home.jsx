@@ -3,7 +3,7 @@ import axios from "axios";
 import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
 
-export default function Home() {
+const Home = () => {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -11,6 +11,7 @@ export default function Home() {
   const [userInfo, setUserInfo] = useState({});
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
+  const [dailyTotalHours, setDailyTotalHours] = useState(0);
 
   const location = useLocation();
 
@@ -32,21 +33,48 @@ export default function Home() {
       const storedUserInfo = JSON.parse(storedUserInfoString);
       setIsLoggedIn(true);
       setUserInfo(storedUserInfo);
+      setAttendanceData(storedUserInfo._id);
     } else {
       setUserInfo();
       setIsLoggedIn(false);
+      setAttendanceData([]);
     }
   }, [location]);
+
+  // useEffect(() => {
+  //   const fetchAllUsersAttendance = async () => {
+  //     try {
+  //       const response = await axios.get("http://127.0.0.1:5000/api/user/allAttendance");
+  //       setAttendanceData(response.data);
+
+  //       const workingHours = response.data.reduce((total, attendance) => {
+  //         if (attendance.checkInTime && attendance.checkOutTime) {
+  //           const checkInTime = new Date(attendance.checkInTime);
+  //           const checkOutTime = new Date(attendance.checkOutTime);
+  //           const diffInMilliseconds = checkOutTime - checkInTime;
+  //           const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+  //           total += diffInHours;
+  //         }
+  //         return total;
+  //       }, 0);
+
+  //       setDailyTotalHours(workingHours);
+  //     } catch (error) {
+  //       console.error("Error fetching attendance data:", error);
+  //     }
+  //   };
+  //   fetchAllUsersAttendance();
+  // }, []);
 
   useEffect(() => {
     const storedAttendanceData =
       JSON.parse(localStorage.getItem("attendance_data")) || [];
-    const trimmedAttendanceData = storedAttendanceData.slice(-1);
+    const trimmedAttendanceData = storedAttendanceData.slice(-31);
     setAttendanceData(trimmedAttendanceData);
   }, []);
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
-    const trimmedAttendanceData = newAttendanceData.slice(-1);
+    const trimmedAttendanceData = newAttendanceData.slice(-31);
     localStorage.setItem(
       "attendance_data",
       JSON.stringify(trimmedAttendanceData)
@@ -62,6 +90,17 @@ export default function Home() {
   const formatTime = (timeString) => {
     const time = new Date(timeString);
     return time.toLocaleTimeString();
+  };
+
+  const calculateWorkingHours = (checkInTime, checkOutTime) => {
+    if (checkInTime && checkOutTime) {
+      const checkIn = new Date(checkInTime);
+      const checkOut = new Date(checkOutTime);
+      const diffInMilliseconds = checkOut - checkIn;
+      const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+      return diffInHours.toFixed(2);
+    }
+    return "N/A";
   };
 
   const getUserLocationAndCheckIn = async (attendanceType) => {
@@ -90,11 +129,20 @@ export default function Home() {
         setAttendanceData(newAttendanceData);
         saveAttendanceDataToLocalStorage(newAttendanceData);
 
+        // Calculate and update daily total working hours
+        if (response.data.checkInTime && response.data.checkOutTime) {
+          const checkInTime = new Date(response.data.checkInTime);
+          const checkOutTime = new Date(response.data.checkOutTime);
+          const diffInMilliseconds = checkOutTime - checkInTime;
+          const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+          setDailyTotalHours((prevTotal) => prevTotal + diffInHours);
+        }
+
         const userDetails = {
           name: userInfo ? userInfo.name.toUpperCase() : "N/A",
           email: userInfo ? userInfo.Email : "N/A",
-          checkInTime: response.data.checkInTime, // Update this line
-          checkOutTime: response.data.checkOutTime, // Update this line
+          checkInTime: response.data.checkInTime,
+          checkOutTime: response.data.checkOutTime,
         };
         setSelectedAttendance({ type: attendanceType, user: userDetails });
       } catch (error) {
@@ -131,6 +179,10 @@ export default function Home() {
       "Out Time": attendance.checkOutTime
         ? formatTime(attendance.checkOutTime)
         : "N/A",
+      "Working Hours": calculateWorkingHours(
+        attendance.checkInTime,
+        attendance.checkOutTime
+      ),
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -224,6 +276,7 @@ export default function Home() {
               <th className="border border-green-600 p-2">Email</th>
               <th className="border border-green-600 p-2">In Time</th>
               <th className="border border-green-600 p-2">Out Time</th>
+              <th className="border border-green-600 p-2">Working Hours</th>
             </tr>
           </thead>
           <tbody>
@@ -251,6 +304,12 @@ export default function Home() {
                     ? formatTime(attendance.checkOutTime)
                     : "N/A"}
                 </td>
+                <td className="border border-green-600 p-2">
+                  {calculateWorkingHours(
+                    attendance.checkInTime,
+                    attendance.checkOutTime
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -263,6 +322,20 @@ export default function Home() {
           Export to Excel
         </button>
       </div>
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <span className="text-sm text-gray-500 sm:text-center">
+          © 2024
+          <a
+            href="https://rishabhsingh7.netlify.app/"
+            className="hover:underline"
+          >
+            RishabhSingh
+          </a>
+          . All Rights Reserved.
+        </span>{" "}
+      </div>
     </div>
   );
-}
+};
+
+export default Home;
