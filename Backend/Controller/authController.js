@@ -2,44 +2,45 @@ import User from "../model/userModel.js";
 import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import jwt from "jsonwebtoken";
-
+  
+//register part
 const register = async (req, res) => {
   try {
-    //fetch data fron req body
+    // Fetch data from req body
     const { name, phoneNumber, Email, Password, ConfirmPassword } = req.body;
 
-    // user exist
-    const checkUserExist = await User.findOne({
-      Email: Email,
-    });
+    // Check if user already exists
+    const checkUserExist = await User.findOne({ Email: Email });
     if (checkUserExist) {
       return res.status(400).json({
         success: false,
-        Message: "User already exist !!",
+        Message: "User already exists!",
       });
     }
-    // @ valid email checkIn
+
+    // Validate email
     if (!Email.includes("@")) {
       return res.status(400).json({
         success: false,
-        Message: "Please enter the valid email !!",
+        Message: "Please enter a valid email!",
       });
     }
-    // all feild required
+
+    // Check if all fields are provided
     if (!name || !phoneNumber || !Email || !Password || !ConfirmPassword) {
       return res.status(400).json({
         success: false,
-        Message: "All fields are mandatory !!",
+        Message: "All fields are mandatory!",
       });
     }
-    //generate salt
+
+    // Generate salt
     const salt = await bcrypt.genSalt(10);
 
-    //hashpassword
-
+    // Hash password
     const hashpassword = await bcrypt.hash(Password, salt);
 
-    // user registration
+    // User registration
     const userRegistration = await User.create({
       name: name,
       Email: Email,
@@ -50,56 +51,62 @@ const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      Message: "User registration successfully !!",
+      Message: "User registration successful!",
       data: userRegistration,
     });
   } catch (error) {
     return res.status(401).json({
       success: false,
-      Message: "User registration failed !!",
+      Message: "User registration failed!",
       data: error,
     });
   }
 };
-// Login part
 
+// Login part
 const login = async (req, res) => {
   try {
     const { Email, Password } = req.body;
-    //validation
+
+    // Validation
     if (!Email || !Password) {
       return res.status(400).json({
         success: false,
-        Message: "All fields is requried !!",
+        Message: "All fields are required!",
       });
     }
-    //email check
+
+    // Email check
     if (!Email.includes("@")) {
       return res.status(400).json({
         success: false,
-        Message: "Please enter the valid email !!",
+        Message: "Please enter a valid email!",
       });
     }
-    // user exist
+
+    // Check if user exists
     const user = await User.findOne({ Email: Email });
-    console.log(user);
+
     if (!user) {
       return res.status(400).json({
         success: false,
-        Message: "User not found please try for a vaild email id !!",
+        Message: "User not found. Please try a valid email id!",
       });
     }
-    //password match
+
+    // Password match
     const matchPassword = await bcrypt.compare(Password, user.Password);
+
     if (!matchPassword) {
       return res.status(400).json({
         success: false,
-        Message: "Password not match !!",
+        Message: "Password does not match!",
       });
     } else {
       const token = jwt.sign({ userId: user._id }, process.env.JWT_TOKEN, {
         expiresIn: "365d",
       });
+
       res.status(201).json({
         token: token,
         user_info: user,
@@ -108,7 +115,7 @@ const login = async (req, res) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      Message: "internal server error !!",
+      Message: "Internal server error!",
       err: error,
     });
   }
@@ -130,10 +137,7 @@ const isAttendanceRecordExistsForToday = (attendanceArray) => {
   }
 };
 
-// attendance
-
-
-
+// Attendance
 const attendance = async (req, res) => {
   const { _id, type, location } = req.body;
   const user = await User.findById(_id);
@@ -168,8 +172,11 @@ const attendance = async (req, res) => {
         }
       }
     }
+
     if (attendanceType == "") {
-      return res.status(400).json({ message: "No attendance found for today" });
+      return res
+        .status(400)
+        .json({ message: "No attendance found for today" });
     }
 
     const todayAttendanceIndex = user[attendanceType + "Attendance"].findIndex(
@@ -183,17 +190,26 @@ const attendance = async (req, res) => {
     );
 
     if (todayAttendanceIndex !== -1) {
-      user[attendanceType + "Attendance"][todayAttendanceIndex].checkOutTime =
-        new Date();
+      user[attendanceType + "Attendance"][
+        todayAttendanceIndex
+      ].checkOutTime = new Date();
       await user.save();
 
       // Update: Include checkInTime and checkOutTime in the response
-      const { checkInTime, checkOutTime } = user[attendanceType + "Attendance"][todayAttendanceIndex];
-      return res.status(200).json({ message: "Attendance updated successfully", checkInTime, checkOutTime });
+      const { checkInTime, checkOutTime } =
+        user[attendanceType + "Attendance"][todayAttendanceIndex];
+      return res.status(200).json({
+        message: "Attendance updated successfully",
+        checkInTime,
+        checkOutTime,
+      });
     } else {
-      return res.status(400).json({ message: "No attendance found for today" });
+      return res
+        .status(400)
+        .json({ message: "No attendance found for today" });
     }
   }
+
   const isAttendanceRecordExists = isAttendanceRecordExistsForToday(
     user[type.toLowerCase() + "Attendance"]
   );
@@ -226,10 +242,37 @@ const attendance = async (req, res) => {
 
   // Update: Include checkInTime and checkOutTime in the response
   const { checkInTime, checkOutTime } = attendanceDetails;
-  return res.status(200).json({ message: "Attendance updated successfully", checkInTime, checkOutTime });
+  return res.status(200).json({
+    message: "Attendance updated successfully",
+    checkInTime,
+    checkOutTime,
+  });
+};
+
+// backend data show in frontend
+
+const getAllUsersAttendance = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    const usersAttendanceData = users.map((user) => ({
+      _id: user._id,
+      name: user.name,
+      email: user.Email,
+      officeAttendance: user.officeAttendance,
+      halfDayAttendance: user.halfDayAttendance,
+      workFromHomeAttendance: user.workFromHomeAttendance,
+    }));
+
+    return res.status(200).json(usersAttendanceData);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
 };
 
 
-
-
-export { register, login, attendance };
+export { register, login, attendance, getAllUsersAttendance };
