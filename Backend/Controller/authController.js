@@ -121,6 +121,9 @@ const login = async (req, res) => {
   }
 };
 
+
+
+
 const isAttendanceRecordExistsForToday = (attendanceArray) => {
   if (attendanceArray && attendanceArray.length > 0) {
     const currentDate = new Date();
@@ -262,8 +265,7 @@ const getAllUsersAttendance = async (req, res) => {
       officeAttendance: user.officeAttendance,
       halfDayAttendance: user.halfDayAttendance,
       workFromHomeAttendance: user.workFromHomeAttendance,
-    }));
-
+    })); 
     return res.status(200).json(usersAttendanceData);
   } catch (error) {
     return res.status(500).json({
@@ -274,5 +276,30 @@ const getAllUsersAttendance = async (req, res) => {
   }
 };
 
+// fetchUserInfo part
+const fetchUserInfo = async (req, res) => {
+  try {
+    const _id  = req.body._id;
+    // Check if user exists
+    const user = await User.findById(_id);
+    
 
-export { register, login, attendance, getAllUsersAttendance };
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        Message: "User not found. Please try a valid email id!",
+      });
+    }
+    res.status(200).json({
+      user_info: user,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      Message: "Internal server error!",
+      err: error,
+    });
+  }
+};
+
+export { register, login, attendance, getAllUsersAttendance, fetchUserInfo };
