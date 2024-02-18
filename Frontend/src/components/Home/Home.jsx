@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
+import AttendanceModel from "../model/attendance_model";
 
 const Home = () => {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
@@ -9,7 +10,7 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [userInfo, setUserInfo] = useState({});
-  const [attendanceData, setAttendanceData] = useState([]);
+  const [attendanceData, setAttendanceData] = useState(AttendanceModel);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
   const [dailyTotalHours, setDailyTotalHours] = useState(0);
 
@@ -33,45 +34,71 @@ const Home = () => {
       const storedUserInfo = JSON.parse(storedUserInfoString);
       setIsLoggedIn(true);
       setUserInfo(storedUserInfo);
-      setAttendanceData(storedUserInfo._id);
+      modelUserAttendance([storedUserInfo]);
     } else {
       setUserInfo();
       setIsLoggedIn(false);
-      setAttendanceData([]);
+      fetchAllUsersAttendance();
     }
   }, [location]);
 
-  // useEffect(() => {
-  //   const fetchAllUsersAttendance = async () => {
-  //     try {
-  //       const response = await axios.get("http://127.0.0.1:5000/api/user/allAttendance");
-  //       setAttendanceData(response.data);
+  const modelUserAttendance = (userInfoList) => {
+    const userAttendanceData = [];
 
-  //       const workingHours = response.data.reduce((total, attendance) => {
-  //         if (attendance.checkInTime && attendance.checkOutTime) {
-  //           const checkInTime = new Date(attendance.checkInTime);
-  //           const checkOutTime = new Date(attendance.checkOutTime);
-  //           const diffInMilliseconds = checkOutTime - checkInTime;
-  //           const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
-  //           total += diffInHours;
-  //         }
-  //         return total;
-  //       }, 0);
+    userInfoList.forEach((user) => {
+      [
+        "officeAttendance",
+        "halfDayAttendance",
+        "workFromHomeAttendance",
+      ].forEach((attendanceType) => {
+        user[attendanceType].forEach((attendance) => {
+          const checkInTime = attendance.checkInTime
+            ? new Date(attendance.checkInTime)
+            : null;
+          const checkOutTime = attendance.checkOutTime
+            ? new Date(attendance.checkOutTime)
+            : null;
 
-  //       setDailyTotalHours(workingHours);
-  //     } catch (error) {
-  //       console.error("Error fetching attendance data:", error);
-  //     }
-  //   };
-  //   fetchAllUsersAttendance();
-  // }, []);
+          // Calculate working hours or set to 0 if either checkInTime or checkOutTime is null
+          const workingHours =
+            checkInTime && checkOutTime
+              ? (checkOutTime - checkInTime) / (1000 * 60 * 60)
+              : 0;
 
-  useEffect(() => {
-    const storedAttendanceData =
-      JSON.parse(localStorage.getItem("attendance_data")) || [];
-    const trimmedAttendanceData = storedAttendanceData.slice(-31);
-    setAttendanceData(trimmedAttendanceData);
-  }, []);
+          const attendanceData = {
+            id: user._id,
+            name: user.name,
+            email: user.email ?? user.Email,
+            date: checkInTime ? checkInTime.toLocaleDateString() : null,
+            checkInTime: attendance.checkInTime,
+            checkOutTime: attendance.checkOutTime,
+            workingHours: workingHours,
+            type: attendanceType,
+          };
+
+          userAttendanceData.push(attendanceData);
+        });
+      });
+    });
+
+    setAttendanceData(userAttendanceData);
+    saveAttendanceDataToLocalStorage(userAttendanceData);
+  };
+
+  const fetchAllUsersAttendance = async () => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:5000/api/user/allAttendance"
+      );
+      if (response.status == 200) {
+        modelUserAttendance(response.data);
+      } else {
+        console.log("some error");
+      }
+    } catch (error) {
+      console.error("Error fetching attendance data:", error);
+    }
+  };
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
     const trimmedAttendanceData = newAttendanceData.slice(-31);
@@ -98,9 +125,28 @@ const Home = () => {
       const checkOut = new Date(checkOutTime);
       const diffInMilliseconds = checkOut - checkIn;
       const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
+      const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
       return diffInHours.toFixed(2);
+      return `${hours}h ${minutes}m`;
     }
     return "N/A";
+  };
+
+  const fetchSpecificUserInfo = async (userId) => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/user/fetchUserInfo",
+        {
+          _id: userId,
+        }
+      );
+      if (response.status == 200) {
+        const userInfoString = JSON.stringify(response.data["user_info"]);
+        window.localStorage.setItem("user_info", userInfoString);
+        modelUserAttendance([response.data["user_info"]]);
+      }
+    } catch (error) {}
   };
 
   const getUserLocationAndCheckIn = async (attendanceType) => {
@@ -125,10 +171,6 @@ const Home = () => {
           }
         );
 
-        const newAttendanceData = [...attendanceData, response.data];
-        setAttendanceData(newAttendanceData);
-        saveAttendanceDataToLocalStorage(newAttendanceData);
-
         // Calculate and update daily total working hours
         if (response.data.checkInTime && response.data.checkOutTime) {
           const checkInTime = new Date(response.data.checkInTime);
@@ -145,6 +187,7 @@ const Home = () => {
           checkOutTime: response.data.checkOutTime,
         };
         setSelectedAttendance({ type: attendanceType, user: userDetails });
+        await fetchSpecificUserInfo(userInfo._id);
       } catch (error) {
         console.log("Error getting location:", error);
       }
@@ -249,7 +292,7 @@ const Home = () => {
             <b>Name:</b> {selectedAttendance.user.name}
           </p>
           <p>
-            <b>Email:</b> {selectedAttendance.user.email}
+            <b>Email:</b> {selectedAttendance.user.Email}
           </p>
           <p>
             <b>Check In Time:</b>{" "}
@@ -280,38 +323,36 @@ const Home = () => {
             </tr>
           </thead>
           <tbody>
-            {attendanceData.map((attendance, index) => (
-              <tr key={index}>
-                <td className="border border-green-600 p-2">{index + 1}</td>
-                <td className="border border-green-600 p-2">
-                  {attendance.checkInTime
-                    ? formatDate(attendance.checkInTime)
-                    : "N/A"}
-                </td>
-                <td className="border border-green-600 p-2">
-                  {userInfo ? userInfo.name.toUpperCase() : "N/A"}
-                </td>
-                <td className="border border-green-600 p-2">
-                  {userInfo ? userInfo.Email : "N/A"}
-                </td>
-                <td className="border border-green-600 p-2">
-                  {attendance.checkInTime
-                    ? formatTime(attendance.checkInTime)
-                    : "N/A"}
-                </td>
-                <td className="border border-green-600 p-2">
-                  {attendance.checkOutTime
-                    ? formatTime(attendance.checkOutTime)
-                    : "N/A"}
-                </td>
-                <td className="border border-green-600 p-2">
-                  {calculateWorkingHours(
-                    attendance.checkInTime,
-                    attendance.checkOutTime
-                  )}
-                </td>
-              </tr>
-            ))}
+            {attendanceData.length > 0 &&
+              attendanceData.map((attendance, index) => (
+                <tr key={index}>
+                  <td className="border border-green-600 p-2">{index + 1}</td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.checkInTime
+                      ? formatDate(attendance.checkInTime)
+                      : "N/A"}
+                  </td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.name.toUpperCase()}
+                  </td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.email}
+                  </td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.checkInTime
+                      ? formatTime(attendance.checkInTime)
+                      : "N/A"}
+                  </td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.checkOutTime
+                      ? formatTime(attendance.checkOutTime)
+                      : "N/A"}
+                  </td>
+                  <td className="border border-green-600 p-2">
+                    {attendance.workingHours}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
         <button
