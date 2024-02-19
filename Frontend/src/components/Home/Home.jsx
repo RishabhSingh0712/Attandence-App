@@ -93,10 +93,10 @@ const Home = () => {
       if (response.status == 200) {
         modelUserAttendance(response.data);
       } else {
-        console.log("some error");
+        error("some error");
       }
     } catch (error) {
-      console.error("Error fetching attendance data:", error);
+      error("Error fetching attendance data:", error);
     }
   };
 
@@ -193,10 +193,10 @@ const Home = () => {
         setSelectedAttendance({ type: attendanceType, user: userDetails });
         await fetchSpecificUserInfo(userInfo._id);
       } catch (error) {
-        console.log("Error getting location:", error);
+        error("Error getting location:", error);
       }
     } else {
-      console.error("Geolocation is not supported by this browser.");
+      error("Geolocation is not supported by this browser.");
     }
   };
 
