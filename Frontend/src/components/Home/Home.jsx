@@ -101,7 +101,7 @@ const Home = () => {
   };
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
-    const trimmedAttendanceData = newAttendanceData.slice(-31);
+    const trimmedAttendanceData = newAttendanceData.slice(-300);
     localStorage.setItem(
       "attendance_data",
       JSON.stringify(trimmedAttendanceData)
@@ -121,17 +121,21 @@ const Home = () => {
 
   const calculateWorkingHours = (checkInTime, checkOutTime) => {
     if (checkInTime && checkOutTime) {
-      const checkIn = new Date(checkInTime);
-      const checkOut = new Date(checkOutTime);
-      const diffInMilliseconds = checkOut - checkIn;
-      const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
-      const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-    const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
-      return diffInHours.toFixed(2);
-      return `${hours}h ${minutes}m`;
+        const checkIn = new Date(checkInTime);
+        const checkOut = new Date(checkOutTime);
+        const diffInMilliseconds = checkOut - checkIn;
+        
+        const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+        const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffInMilliseconds % (1000 * 60)) / 1000);
+
+        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        return formattedTime;
     }
     return "N/A";
-  };
+};
+
 
   const fetchSpecificUserInfo = async (userId) => {
     try {
@@ -177,12 +181,12 @@ const Home = () => {
           const checkOutTime = new Date(response.data.checkOutTime);
           const diffInMilliseconds = checkOutTime - checkInTime;
           const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
-          setDailyTotalHours((prevTotal) => prevTotal + diffInHours);
+          dailyTotalHours((prevTotal) => prevTotal + diffInHours);
         }
 
         const userDetails = {
           name: userInfo ? userInfo.name.toUpperCase() : "N/A",
-          email: userInfo ? userInfo.Email : "N/A",
+          Email: userInfo ? userInfo.Email : "N/A",
           checkInTime: response.data.checkInTime,
           checkOutTime: response.data.checkOutTime,
         };
@@ -215,7 +219,7 @@ const Home = () => {
       "Sr. No.": index + 1,
       Date: attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A",
       Name: userInfo ? userInfo.name.toUpperCase() : "N/A",
-      Email: userInfo ? userInfo.Email : "N/A",
+      Email: userInfo ? userInfo.email : "N/A",
       "In Time": attendance.checkInTime
         ? formatTime(attendance.checkInTime)
         : "N/A",
