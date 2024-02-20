@@ -21,7 +21,7 @@ app.use('/api/user', userRoutes);
 connectDB();
 
 app.listen(PORT,()=>{
-    console.log(`Server on listing http://127.0.0.1:${PORT}`);
+console.log(`Server on listing http://127.0.0.1:${PORT}`);
 })
 
 

@@ -29,7 +29,7 @@ export default function Footer() {
           });
         })
         .catch((error) => {
-          console.error("Error fetching user data:", error);
+          error("Error fetching user data:", error);
         });
     }
   }, [location]);

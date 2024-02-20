@@ -121,21 +121,24 @@ const Home = () => {
 
   const calculateWorkingHours = (checkInTime, checkOutTime) => {
     if (checkInTime && checkOutTime) {
-        const checkIn = new Date(checkInTime);
-        const checkOut = new Date(checkOutTime);
-        const diffInMilliseconds = checkOut - checkIn;
-        
-        const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-        const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffInMilliseconds % (1000 * 60)) / 1000);
+      const checkIn = new Date(checkInTime);
+      const checkOut = new Date(checkOutTime);
+      const diffInMilliseconds = checkOut - checkIn;
 
-        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        return formattedTime;
+      const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+      const minutes = Math.floor(
+        (diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60)
+      );
+      const seconds = Math.floor((diffInMilliseconds % (1000 * 60)) / 1000);
+
+      const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+      return formattedTime;
     }
     return "N/A";
-};
-
+  };
 
   const fetchSpecificUserInfo = async (userId) => {
     try {
@@ -287,6 +290,13 @@ const Home = () => {
           className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
         >
           Office Out
+        </button>
+        <button
+          type="button"
+          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+          onClick={() => (window.location.href = "https://docs.google.com/forms/d/1n2YOqv2Hrty8ZVcGIRyhUSVgWu7_RkTdqzcsEipj0V4/edit")}
+        >
+          Leave form
         </button>
       </div>
 

@@ -111,11 +111,11 @@ const RegisterPage = () => {
                 alert("user already present");
             }
             
-            // console.log(response.data["data"]);
+            
             resetForm();
           });
       } catch (error) {
-        console.log("this is outer block " + error);
+        alert("User already present")
       }
     } else {
       setErrors(newErrors);
