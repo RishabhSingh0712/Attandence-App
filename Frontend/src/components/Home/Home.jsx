@@ -36,11 +36,12 @@ const Home = () => {
       setUserInfo(storedUserInfo);
       modelUserAttendance([storedUserInfo]);
     } else {
-      setUserInfo();
+      setUserInfo({});
       setIsLoggedIn(false);
       fetchAllUsersAttendance();
     }
   }, [location]);
+  
 
   const modelUserAttendance = (userInfoList) => {
     const userAttendanceData = [];
@@ -72,7 +73,7 @@ const Home = () => {
             date: checkInTime ? checkInTime.toLocaleDateString() : null,
             checkInTime: attendance.checkInTime,
             checkOutTime: attendance.checkOutTime,
-            workingHours: workingHours,
+            workingHours: calculateWorkingHours(checkInTime, checkOutTime),
             type: attendanceType,
           };
 
@@ -124,21 +125,19 @@ const Home = () => {
       const checkIn = new Date(checkInTime);
       const checkOut = new Date(checkOutTime);
       const diffInMilliseconds = checkOut - checkIn;
-
+  
       const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-      const minutes = Math.floor(
-        (diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60)
-      );
-      const seconds = Math.floor((diffInMilliseconds % (1000 * 60)) / 1000);
-
-      const formattedTime = `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
+      const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+  
+      const formattedHours = String(hours).padStart(2, "0");
+      const formattedMinutes = String(minutes).padStart(2, "0");
+  
+      const formattedTime = `${formattedHours}:${formattedMinutes}`;
       return formattedTime;
     }
     return "N/A";
   };
+  
 
   const fetchSpecificUserInfo = async (userId) => {
     try {
@@ -162,7 +161,7 @@ const Home = () => {
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
-
+  
         const { latitude, longitude } = position.coords;
         const response = await axios.post(
           "http://127.0.0.1:5000/api/user/attendance",
@@ -177,16 +176,16 @@ const Home = () => {
             time: currTime,
           }
         );
-
+  
         // Calculate and update daily total working hours
         if (response.data.checkInTime && response.data.checkOutTime) {
           const checkInTime = new Date(response.data.checkInTime);
           const checkOutTime = new Date(response.data.checkOutTime);
           const diffInMilliseconds = checkOutTime - checkInTime;
           const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
-          dailyTotalHours((prevTotal) => prevTotal + diffInHours);
+          setDailyTotalHours((prevTotal) => prevTotal + diffInHours);
         }
-
+  
         const userDetails = {
           name: userInfo ? userInfo.name.toUpperCase() : "N/A",
           Email: userInfo ? userInfo.Email : "N/A",
@@ -195,34 +194,39 @@ const Home = () => {
         };
         setSelectedAttendance({ type: attendanceType, user: userDetails });
         await fetchSpecificUserInfo(userInfo._id);
+        await fetchAllUsersAttendance();
       } catch (error) {
-        error("Error getting location:", error);
+        console.error("Error getting location:", error);
       }
     } else {
-      error("Geolocation is not supported by this browser.");
+      console.error("Geolocation is not supported by this browser.");
     }
   };
+  
+
+
 
   const handleButtonClick = async (attendanceType) => {
     if (!isLoggedIn) {
       alert("Please login!!");
       return;
     }
-
+  
     try {
       await getUserLocationAndCheckIn(attendanceType);
       alert("Attendance Done!!");
     } catch (error) {
+      console.error("Error submitting attendance:", error);
       window.alert("Error submitting attendance. Please try again.");
     }
   };
-
+  
   const exportToExcel = () => {
     const data = attendanceData.map((attendance, index) => ({
       "Sr. No.": index + 1,
       Date: attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A",
-      Name: userInfo ? userInfo.name.toUpperCase() : "N/A",
-      Email: userInfo ? userInfo.email : "N/A",
+      Name: isLoggedIn ? userInfo.name.toUpperCase() : "N/A",
+      Email: isLoggedIn ? userInfo.email : "N/A",
       "In Time": attendance.checkInTime
         ? formatTime(attendance.checkInTime)
         : "N/A",
@@ -234,13 +238,14 @@ const Home = () => {
         attendance.checkOutTime
       ),
     }));
-
+  
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
     XLSX.writeFile(wb, "attendance_data.xlsx");
   };
-
+  
+  
   return (
     <div className="mx-auto w-full max-w-7xl">
       <aside className="relative overflow-hidden text-black rounded-lg sm:mx-16 mx-2"></aside>

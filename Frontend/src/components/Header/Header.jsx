@@ -39,7 +39,7 @@ export default function Header() {
           <Link to="/" className="flex items-center">
             <img
               src="https://mizzlecodes.com/wp-content/uploads/2022/06/logo-sq-rctngl-clr-nblu-20.png"
-              className="mr-7 h-8"
+              className="mr-7 h-8 "
               alt="Logo"
             />
           </Link>
