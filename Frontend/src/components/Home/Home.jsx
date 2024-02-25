@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
@@ -8,7 +9,10 @@ const Home = () => {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const [currDate, setCurrDate] = useState(new Date().toLocaleDateString());
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+  const [hasOfficeIn, setHasOfficeIn] = useState(false);
+  const [hasHalfDay, setHasHalfDay] = useState(false);
+  const [hasWorkFromHome, setHasWorkFromHome] = useState(false);
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
   const [userInfo, setUserInfo] = useState({});
   const [attendanceData, setAttendanceData] = useState(AttendanceModel);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
@@ -23,8 +27,26 @@ const Home = () => {
     }, 1000);
 
     setIsLoggedIn(true);
+    const resetDailyActions = () => {
+      setHasOfficeIn(false);
+      setHasHalfDay(false);
+      setHasWorkFromHome(false);
+      setHasLoggedOut(false);
+    };
 
-    return () => clearInterval(intervalId);
+    const midnightIntervalId = setInterval(() => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(0, 0, 0, 0);
+
+      // Reset variables at midnight
+      if (now.getTime() === midnight.getTime()) {
+        resetDailyActions();
+      }
+    }, 60000); // Check every minute
+
+    // Clear interval on component unmount
+    return () => clearInterval(midnightIntervalId);
   }, []);
 
   useEffect(() => {
@@ -36,12 +58,15 @@ const Home = () => {
       setUserInfo(storedUserInfo);
       modelUserAttendance([storedUserInfo]);
     } else {
+      setHasOfficeIn(false);
+      setHasHalfDay(false);
+      setHasWorkFromHome(false);
+      setHasLoggedOut(false);
       setUserInfo({});
       setIsLoggedIn(false);
       fetchAllUsersAttendance();
     }
   }, [location]);
-  
 
   const modelUserAttendance = (userInfoList) => {
     const userAttendanceData = [];
@@ -59,12 +84,6 @@ const Home = () => {
           const checkOutTime = attendance.checkOutTime
             ? new Date(attendance.checkOutTime)
             : null;
-
-          // Calculate working hours or set to 0 if either checkInTime or checkOutTime is null
-          const workingHours =
-            checkInTime && checkOutTime
-              ? (checkOutTime - checkInTime) / (1000 * 60 * 60)
-              : 0;
 
           const attendanceData = {
             id: user._id,
@@ -125,19 +144,20 @@ const Home = () => {
       const checkIn = new Date(checkInTime);
       const checkOut = new Date(checkOutTime);
       const diffInMilliseconds = checkOut - checkIn;
-  
+
       const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-      const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
-  
+      const minutes = Math.floor(
+        (diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60)
+      );
+
       const formattedHours = String(hours).padStart(2, "0");
       const formattedMinutes = String(minutes).padStart(2, "0");
-  
+
       const formattedTime = `${formattedHours}:${formattedMinutes}`;
       return formattedTime;
     }
     return "N/A";
   };
-  
 
   const fetchSpecificUserInfo = async (userId) => {
     try {
@@ -161,7 +181,7 @@ const Home = () => {
         const position = await new Promise((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
-  
+
         const { latitude, longitude } = position.coords;
         const response = await axios.post(
           "http://127.0.0.1:5000/api/user/attendance",
@@ -176,7 +196,7 @@ const Home = () => {
             time: currTime,
           }
         );
-  
+
         // Calculate and update daily total working hours
         if (response.data.checkInTime && response.data.checkOutTime) {
           const checkInTime = new Date(response.data.checkInTime);
@@ -185,7 +205,7 @@ const Home = () => {
           const diffInHours = diffInMilliseconds / (1000 * 60 * 60);
           setDailyTotalHours((prevTotal) => prevTotal + diffInHours);
         }
-  
+
         const userDetails = {
           name: userInfo ? userInfo.name.toUpperCase() : "N/A",
           Email: userInfo ? userInfo.Email : "N/A",
@@ -202,16 +222,48 @@ const Home = () => {
       console.error("Geolocation is not supported by this browser.");
     }
   };
-  
-
-
 
   const handleButtonClick = async (attendanceType) => {
     if (!isLoggedIn) {
       alert("Please login!!");
       return;
     }
-  
+
+    // Check if the user has already performed the action for the day
+    switch (attendanceType) {
+      case "office":
+        if (hasOfficeIn) {
+          alert("You have already clicked Office In for today.");
+          return;
+        }
+        setHasOfficeIn(true);
+        break;
+      case "halfDay":
+        if (hasHalfDay) {
+          alert("You have already clicked Half Day for today.");
+          return;
+        }
+        setHasHalfDay(true);
+        break;
+      case "workFromHome":
+        if (hasWorkFromHome) {
+          alert("You have already clicked Work From Home for today.");
+          return;
+        }
+        setHasWorkFromHome(true);
+        break;
+      case "Office Out":
+        // Assuming Logout is equivalent to Office Out
+        if (hasLoggedOut) {
+          alert("You have already logged out for today.");
+          return;
+        }
+        setHasLoggedOut(true);
+        break;
+      default:
+        break;
+    }
+
     try {
       await getUserLocationAndCheckIn(attendanceType);
       alert("Attendance Done!!");
@@ -220,7 +272,7 @@ const Home = () => {
       window.alert("Error submitting attendance. Please try again.");
     }
   };
-  
+
   const exportToExcel = () => {
     const data = attendanceData.map((attendance, index) => ({
       "Sr. No.": index + 1,
@@ -238,14 +290,13 @@ const Home = () => {
         attendance.checkOutTime
       ),
     }));
-  
+
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
     XLSX.writeFile(wb, "attendance_data.xlsx");
   };
-  
-  
+
   return (
     <div className="mx-auto w-full max-w-7xl">
       <aside className="relative overflow-hidden text-black rounded-lg sm:mx-16 mx-2"></aside>
@@ -299,7 +350,10 @@ const Home = () => {
         <button
           type="button"
           className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-          onClick={() => (window.location.href = "https://docs.google.com/forms/d/1n2YOqv2Hrty8ZVcGIRyhUSVgWu7_RkTdqzcsEipj0V4/edit")}
+          onClick={() =>
+            (window.location.href =
+              "https://docs.google.com/forms/d/1n2YOqv2Hrty8ZVcGIRyhUSVgWu7_RkTdqzcsEipj0V4/edit")
+          }
         >
           Leave form
         </button>
