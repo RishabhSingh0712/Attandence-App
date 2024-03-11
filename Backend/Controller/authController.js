@@ -266,6 +266,7 @@ const getAllUsersAttendance = async (req, res) => {
       halfDayAttendance: user.halfDayAttendance,
       workFromHomeAttendance: user.workFromHomeAttendance,
     })); 
+
     return res.status(200).json(usersAttendanceData);
   } catch (error) {
     return res.status(500).json({
@@ -275,6 +276,7 @@ const getAllUsersAttendance = async (req, res) => {
     });
   }
 };
+
 
 // fetchUserInfo part
 const fetchUserInfo = async (req, res) => {
