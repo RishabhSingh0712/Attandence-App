@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 import * as XLSX from "xlsx";
-import AttendanceModel from "../model/attendance_model";
 
 const Home = () => {
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
@@ -14,10 +12,11 @@ const Home = () => {
   const [hasWorkFromHome, setHasWorkFromHome] = useState(false);
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
   const [userInfo, setUserInfo] = useState({});
-  const [attendanceData, setAttendanceData] = useState(AttendanceModel);
+  const [attendanceData, setAttendanceData] = useState([]);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
-  const [dailyTotalHours, setDailyTotalHours] = useState(0);
-
+  const [groupedAttendanceData, setGroupedAttendanceData] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
   const location = useLocation();
 
   useEffect(() => {
@@ -27,6 +26,7 @@ const Home = () => {
     }, 1000);
 
     setIsLoggedIn(true);
+
     const resetDailyActions = () => {
       setHasOfficeIn(false);
       setHasHalfDay(false);
@@ -68,64 +68,97 @@ const Home = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    const userAttendanceData = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/api/user/allAttendance");
+        setAttendanceData(response.data);
+        modelUserAttendance(response.data);
+      } catch (error) {
+        console.error("Error fetching attendance data:", error);
+      }
+    };
+
+    userAttendanceData();
+  }, []);
+
+  const groupAttendanceByDate = (attendanceData) => {
+    return attendanceData.reduce((groupedData, attendance) => {
+      const date = attendance.date;
+      if (!groupedData[date]) {
+        groupedData[date] = [];
+      }
+      groupedData[date].push(attendance);
+      return groupedData;
+    }, {});
+  };
+
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const totalEntries = Object.entries(groupedAttendanceData).length;
+
+    if (totalEntries === 0 || startIndex >= totalEntries) {
+      return [];
+    }
+
+    const currentData = Object.entries(groupedAttendanceData).slice(startIndex, endIndex);
+    return currentData;
+  };
+
   const modelUserAttendance = (userInfoList) => {
     const userAttendanceData = [];
 
     userInfoList.forEach((user) => {
-      [
-        "officeAttendance",
-        "halfDayAttendance",
-        "workFromHomeAttendance",
-      ].forEach((attendanceType) => {
-        user[attendanceType].forEach((attendance) => {
-          const checkInTime = attendance.checkInTime
-            ? new Date(attendance.checkInTime)
-            : null;
-          const checkOutTime = attendance.checkOutTime
-            ? new Date(attendance.checkOutTime)
-            : null;
+      ["officeAttendance", "halfDayAttendance", "workFromHomeAttendance"].forEach(
+        (attendanceType) => {
+          user[attendanceType].forEach((attendance) => {
+            const checkInTime = attendance.checkInTime
+              ? new Date(attendance.checkInTime)
+              : null;
+            const checkOutTime = attendance.checkOutTime
+              ? new Date(attendance.checkOutTime)
+              : null;
 
-          const attendanceData = {
-            id: user._id,
-            name: user.name,
-            email: user.email ?? user.Email,
-            date: checkInTime ? checkInTime.toLocaleDateString() : null,
-            checkInTime: attendance.checkInTime,
-            checkOutTime: attendance.checkOutTime,
-            workingHours: calculateWorkingHours(checkInTime, checkOutTime),
-            type: attendanceType,
-          };
+            const attendanceData = {
+              id: user._id,
+              name: user.name,
+              email: user.email ?? user.Email,
+              date: checkInTime ? checkInTime.toLocaleDateString() : null,
+              checkInTime: attendance.checkInTime,
+              checkOutTime: attendance.checkOutTime,
+              workingHours: calculateWorkingHours(checkInTime, checkOutTime),
+              type: attendanceType,
+            };
 
-          userAttendanceData.push(attendanceData);
-        });
-      });
+            userAttendanceData.push(attendanceData);
+          });
+        }
+      );
     });
 
-    setAttendanceData(userAttendanceData);
+    const groupedData = groupAttendanceByDate(userAttendanceData);
+    setGroupedAttendanceData(groupedData);
+    setAttendanceData((prevData) => [...prevData, ...userAttendanceData]);
     saveAttendanceDataToLocalStorage(userAttendanceData);
   };
 
   const fetchAllUsersAttendance = async () => {
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:5000/api/user/allAttendance"
-      );
-      if (response.status == 200) {
+      const response = await axios.get("http://127.0.0.1:5000/api/user/allAttendance");
+      if (response.status === 200) {
         modelUserAttendance(response.data);
       } else {
-        error("some error");
+        console.error("some error");
       }
     } catch (error) {
-      error("Error fetching attendance data:", error);
+      console.error("Error fetching attendance data:", error);
     }
   };
 
   const saveAttendanceDataToLocalStorage = (newAttendanceData) => {
     const trimmedAttendanceData = newAttendanceData.slice(-300);
-    localStorage.setItem(
-      "attendance_data",
-      JSON.stringify(trimmedAttendanceData)
-    );
+    localStorage.setItem("attendance_data", JSON.stringify(trimmedAttendanceData));
   };
 
   const formatDate = (dateString) => {
@@ -146,9 +179,7 @@ const Home = () => {
       const diffInMilliseconds = checkOut - checkIn;
 
       const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-      const minutes = Math.floor(
-        (diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60)
-      );
+      const minutes = Math.floor((diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
 
       const formattedHours = String(hours).padStart(2, "0");
       const formattedMinutes = String(minutes).padStart(2, "0");
@@ -161,18 +192,17 @@ const Home = () => {
 
   const fetchSpecificUserInfo = async (userId) => {
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5000/api/user/fetchUserInfo",
-        {
-          _id: userId,
-        }
-      );
-      if (response.status == 200) {
+      const response = await axios.post("http://127.0.0.1:5000/api/user/fetchUserInfo", {
+        _id: userId,
+      });
+      if (response.status === 200) {
         const userInfoString = JSON.stringify(response.data["user_info"]);
         window.localStorage.setItem("user_info", userInfoString);
         modelUserAttendance([response.data["user_info"]]);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching specific user info:", error);
+    }
   };
 
   const getUserLocationAndCheckIn = async (attendanceType) => {
@@ -274,28 +304,29 @@ const Home = () => {
   };
 
   const exportToExcel = () => {
-    const data = attendanceData.map((attendance, index) => ({
-      "Sr. No.": index + 1,
-      Date: attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A",
-      Name: isLoggedIn ? userInfo.name.toUpperCase() : "N/A",
-      Email: isLoggedIn ? userInfo.email : "N/A",
-      "In Time": attendance.checkInTime
-        ? formatTime(attendance.checkInTime)
-        : "N/A",
-      "Out Time": attendance.checkOutTime
-        ? formatTime(attendance.checkOutTime)
-        : "N/A",
-      "Working Hours": calculateWorkingHours(
-        attendance.checkInTime,
-        attendance.checkOutTime
-      ),
-    }));
+    const data = [];
+
+    // Flatten the groupedAttendanceData into a single array for export
+    Object.entries(groupedAttendanceData).forEach(([date, entries]) => {
+      entries.forEach((attendance, index) => {
+        data.push({
+          "Sr. No.": index + 1,
+          Date: attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A",
+          Name: attendance.name.toUpperCase(),
+          Email: attendance.email,
+          "In Time": attendance.checkInTime ? formatTime(attendance.checkInTime) : "N/A",
+          "Out Time": attendance.checkOutTime ? formatTime(attendance.checkOutTime) : "N/A",
+          "Working Hours": attendance.workingHours,
+        });
+      });
+    });
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
     XLSX.writeFile(wb, "attendance_data.xlsx");
   };
+  
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -304,7 +335,7 @@ const Home = () => {
       <div className="grid place-items-center sm:mt-20">
         <img
           className="sm:w-96 w-48"
-          src="https://i.ibb.co/2M7rtLk/Remote1.png"
+          src="https://www.skoolbeep.com/blog/wp-content/uploads/2020/12/What-is-an-attendence-manangemnt-system.png"
           alt="image2"
         />
       </div>
@@ -381,53 +412,66 @@ const Home = () => {
           </p>
         </div>
       )}
-
       <div className="mt-10">
-        <table className="mt-5 w-full border-collapse border border-green-800">
-          <thead>
-            <tr>
-              <th className="border border-green-600 p-2">Sr. No.</th>
-              <th className="border border-green-600 p-2">Date</th>
-              <th className="border border-green-600 p-2">Name</th>
-              <th className="border border-green-600 p-2">Email</th>
-              <th className="border border-green-600 p-2">In Time</th>
-              <th className="border border-green-600 p-2">Out Time</th>
-              <th className="border border-green-600 p-2">Working Hours</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attendanceData.length > 0 &&
-              attendanceData.map((attendance, index) => (
-                <tr key={index}>
-                  <td className="border border-green-600 p-2">{index + 1}</td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.checkInTime
-                      ? formatDate(attendance.checkInTime)
-                      : "N/A"}
-                  </td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.name.toUpperCase()}
-                  </td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.email}
-                  </td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.checkInTime
-                      ? formatTime(attendance.checkInTime)
-                      : "N/A"}
-                  </td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.checkOutTime
-                      ? formatTime(attendance.checkOutTime)
-                      : "N/A"}
-                  </td>
-                  <td className="border border-green-600 p-2">
-                    {attendance.workingHours}
-                  </td>
+        {/* Display grouped attendance data */}
+        {getCurrentPageData().map(([date, data]) => (
+          <div key={date}>
+            <h2 className="text-xl font-bold">{date}</h2>
+            <table className="mt-5 w-full border-collapse border border-green-800">
+              <thead>
+                <tr>
+                  <th className="border border-green-600 p-2">Sr. No.</th>
+                  <th className="border border-green-600 p-2">Date</th>
+                  <th className="border border-green-600 p-2">Name</th>
+                  <th className="border border-green-600 p-2">Email</th>
+                  <th className="border border-green-600 p-2">In Time</th>
+                  <th className="border border-green-600 p-2">Out Time</th>
+                  <th className="border border-green-600 p-2">Working Hours</th>
                 </tr>
-              ))}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {data.map((attendance, index) => (
+                  <tr key={index}>
+                    <td className="border border-green-600 p-2">{index + 1}</td>
+                    <td className="border border-green-600 p-2">
+                      {attendance.checkInTime ? formatDate(attendance.checkInTime) : "N/A"}
+                    </td>
+                    <td className="border border-green-600 p-2">{attendance.name.toUpperCase()}</td>
+                    <td className="border border-green-600 p-2">{attendance.email}</td>
+                    <td className="border border-green-600 p-2">
+                      {attendance.checkInTime ? formatTime(attendance.checkInTime) : "N/A"}
+                    </td>
+                    <td className="border border-green-600 p-2">
+                      {attendance.checkOutTime ? formatTime(attendance.checkOutTime) : "N/A"}
+                    </td>
+                    <td className="border border-green-600 p-2">{attendance.workingHours}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+
+         {/* Pagination buttons */}
+       
+        {/* Pagination buttons */}
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setCurrentPage(prevPage => Math.max(prevPage - 1, 1))}
+            disabled={currentPage === 1}
+            className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 mx-2"
+          >
+            Prev Page
+          </button>
+          <button
+            onClick={() => setCurrentPage(prevPage => prevPage + 1)}
+            disabled={Object.entries(groupedAttendanceData).length <= currentPage * itemsPerPage}
+            className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 mx-2"
+          >
+            Next Page
+          </button>
+        </div>
+
         <button
           type="button"
           onClick={exportToExcel}
