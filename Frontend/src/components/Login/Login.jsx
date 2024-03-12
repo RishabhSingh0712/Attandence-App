@@ -75,7 +75,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 ">
       <div className="max-w-md w-full p-6 bg-white rounded-md shadow-md">
         <h2 className="text-3xl font-semibold text-center mb-6">
           Employee Login
@@ -135,7 +135,14 @@ const Login = () => {
             <Link to="/Registerpage" className="text-blue-500">
               Register Here
             </Link>
+
+           {/* forget password code */}
+            <br />
+            <Link to="/forget-password" className="text-blue-500">
+            Reset Password
+            </Link>
           </p>
+          
         </form>
       </div>
     </div>
