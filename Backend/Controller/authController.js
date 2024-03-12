@@ -2,6 +2,7 @@ import User from "../model/userModel.js";
 import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
   
 //register part
 const register = async (req, res) => {
@@ -120,9 +121,6 @@ const login = async (req, res) => {
     });
   }
 };
-
-
-
 
 const isAttendanceRecordExistsForToday = (attendanceArray) => {
   if (attendanceArray && attendanceArray.length > 0) {
@@ -304,4 +302,56 @@ const fetchUserInfo = async (req, res) => {
   }
 };
 
-export { register, login, attendance, getAllUsersAttendance, fetchUserInfo };
+//forget password 
+
+const ForgetPassword = async (req, res) => {
+  const { Email } = req.body;
+
+  // Create transporter with Gmail credentials
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "your-email@gmail.com",
+      pass: "your-generated-app-password",
+    },
+  });
+
+  try {
+    // Your existing logic to find the user and generate the token
+
+    const user = await User.findOne({ email: Email });
+
+    if (!user) {
+      return res.send({ Status: "User not existed" });
+    }
+
+    const token = jwt.sign({ id: user._id }, "JWT_TOKEN", {
+      expiresIn: "15m",
+    });
+
+    // Setup email options
+    const mailOptions = {
+      from: "your-email@gmail.com",
+      to: user.Email, 
+      subject: "Reset your password",
+      text: `http://127.0.0.1:5000/api/user/ForgetPassword/${user._id}/${token}`,
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+        return res.status(500).send({ Status: "Email sending failed" });
+      } else {
+        console.log(info);
+        return res.send({ Status: "Success" });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send({ Status: "Internal Server Error" });
+  }
+};
+
+
+export { register, login, attendance, getAllUsersAttendance, fetchUserInfo,ForgetPassword };
