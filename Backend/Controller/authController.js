@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
-  
+
 //register part
 const register = async (req, res) => {
   try {
@@ -175,9 +175,7 @@ const attendance = async (req, res) => {
     }
 
     if (attendanceType == "") {
-      return res
-        .status(400)
-        .json({ message: "No attendance found for today" });
+      return res.status(400).json({ message: "No attendance found for today" });
     }
 
     const todayAttendanceIndex = user[attendanceType + "Attendance"].findIndex(
@@ -191,9 +189,8 @@ const attendance = async (req, res) => {
     );
 
     if (todayAttendanceIndex !== -1) {
-      user[attendanceType + "Attendance"][
-        todayAttendanceIndex
-      ].checkOutTime = new Date();
+      user[attendanceType + "Attendance"][todayAttendanceIndex].checkOutTime =
+        new Date();
       await user.save();
 
       // Update: Include checkInTime and checkOutTime in the response
@@ -205,9 +202,7 @@ const attendance = async (req, res) => {
         checkOutTime,
       });
     } else {
-      return res
-        .status(400)
-        .json({ message: "No attendance found for today" });
+      return res.status(400).json({ message: "No attendance found for today" });
     }
   }
 
@@ -263,7 +258,7 @@ const getAllUsersAttendance = async (req, res) => {
       officeAttendance: user.officeAttendance,
       halfDayAttendance: user.halfDayAttendance,
       workFromHomeAttendance: user.workFromHomeAttendance,
-    })); 
+    }));
 
     return res.status(200).json(usersAttendanceData);
   } catch (error) {
@@ -275,14 +270,12 @@ const getAllUsersAttendance = async (req, res) => {
   }
 };
 
-
 // fetchUserInfo part
 const fetchUserInfo = async (req, res) => {
   try {
-    const _id  = req.body._id;
+    const _id = req.body._id;
     // Check if user exists
     const user = await User.findById(_id);
-    
 
     if (!user) {
       return res.status(400).json({
@@ -302,19 +295,10 @@ const fetchUserInfo = async (req, res) => {
   }
 };
 
-//forget password 
+//forget password
 
 const ForgetPassword = async (req, res) => {
   const { Email } = req.body;
-
-  // Create transporter with Gmail credentials
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "your-email@gmail.com",
-      pass: "your-generated-app-password",
-    },
-  });
 
   try {
     // Your existing logic to find the user and generate the token
@@ -322,8 +306,17 @@ const ForgetPassword = async (req, res) => {
     const user = await User.findOne({ email: Email });
 
     if (!user) {
-      return res.send({ Status: "User not existed" });
+      return res.status(404).json({ error: "User not found" });
     }
+    // Create transporter with Gmail credentials
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "rishabhraipur40@gmail.com",
+        pass: "eninuweejkwenmdf",
+      },
+    });
 
     const token = jwt.sign({ id: user._id }, "JWT_TOKEN", {
       expiresIn: "15m",
@@ -332,9 +325,9 @@ const ForgetPassword = async (req, res) => {
     // Setup email options
     const mailOptions = {
       from: "your-email@gmail.com",
-      to: user.Email, 
+      to: user.Email,
       subject: "Reset your password",
-      text: `http://127.0.0.1:5000/api/user/ForgetPassword/${user._id}/${token}`,
+      text: `https://127.0.0.1:5000/api/user/ForgetPassword/${user._id}/${token}`,
     };
 
     // Send email
@@ -353,5 +346,11 @@ const ForgetPassword = async (req, res) => {
   }
 };
 
-
-export { register, login, attendance, getAllUsersAttendance, fetchUserInfo,ForgetPassword };
+export {
+  register,
+  login,
+  attendance,
+  getAllUsersAttendance,
+  fetchUserInfo,
+  ForgetPassword,
+};
