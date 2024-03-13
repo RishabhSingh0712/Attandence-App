@@ -27,18 +27,17 @@ const ForgetPassword = () => {
     if (formIsValid) {
       try {
         const data = {
-          Email: formData.email,
+          email: formData.Email,
         };
 
         const response = await axios.post("http://127.0.0.1:5000/api/user/ForgetPassword", data);
 
-        if (response.status === 201) {
+        if (response.status === 200) {
           alert("Password reset link sent to your email account");
           navigate("/login");
-        } else if (response.status === 404) {
-          alert("User not found");
         } else {
-          alert("Error, password reset failed!!");
+          console.log(response.data); 
+          alert("Error: " + response.data.error);
         }
       } catch (error) {
         console.error(error);
@@ -65,16 +64,16 @@ const ForgetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 ">
       <div className="max-w-md w-full p-6 bg-white rounded-md shadow-md">
-        <h3 className="text-3xl font-semibold text-center mb-6">
+        <h4 className="text-3xl font-semibold text-center mb-6">
           Reset Password
-        </h3>
+        </h4>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-600"
             >
-              Email
+             Enter your Email
             </label>
             <input
               type="email"
