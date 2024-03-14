@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 
+
+
 export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState();
@@ -23,12 +25,12 @@ export default function Header() {
   }, [location]);
 
   // Function to handle logout
-
+   
+ 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_info");
     localStorage.removeItem("attendance_data");
-
     setIsLoggedIn(false);
   };
 
