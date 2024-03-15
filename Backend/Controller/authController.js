@@ -302,11 +302,18 @@ const ForgetPassword = async (req, res) => {
 
   try {
     // Check if user exists
-    const user = await User.findOne({ Email: Email });
+    const user = await User.findOne({ email: Email });
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "User not found. Please register first." });
     }
+
+    // Generate reset token
+    const token = jwt.sign({ id: user._id }, "JWT_SECRET", { expiresIn: "15m" });
+
+    // Save the reset token to the user's document in the database
+    user.resetToken = token;
+    await user.save();
 
     // Create transporter with Gmail credentials
     const transporter = nodemailer.createTransport({
@@ -317,9 +324,7 @@ const ForgetPassword = async (req, res) => {
       },
     });
 
-    const token = jwt.sign({ id: user._id }, "JWT_TOKEN", {
-      expiresIn: "15m",
-    });
+    
 
     // Setup email options
     const mailOptions = {
