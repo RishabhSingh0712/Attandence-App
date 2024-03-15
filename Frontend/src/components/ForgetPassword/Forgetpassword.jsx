@@ -27,7 +27,7 @@ const ForgetPassword = () => {
     if (formIsValid) {
       try {
         const data = {
-          email: formData.Email,
+          email: formData.email,
         };
 
         const response = await axios.post("http://127.0.0.1:5000/api/user/ForgetPassword", data);
