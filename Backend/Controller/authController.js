@@ -301,22 +301,19 @@ const ForgetPassword = async (req, res) => {
   const { Email } = req.body;
 
   try {
-    // Your existing logic to find the user and generate the token
-
-    const user = await User.findOne({ email: Email });
+    // Check if user exists
+    const user = await User.findOne({ Email: Email });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    // Create transporter with Gmail credentials
 
+    // Create transporter with Gmail credentials
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        // user: "rishabhraipur40@gmail.com",
-        // pass: "eninuweejkwenmdf",
-        user: 'youremail@gmail.com',
-        pass: 'yourpassword',
+        user: "rishabhraipur40@gmail.com",
+        pass: "eninuweejkwenmdf",
       },
     });
 
