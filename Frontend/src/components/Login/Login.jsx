@@ -1,11 +1,12 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Button from '@material-ui/core/Button';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const [formData, setFormData] = useState({
     email: "",
@@ -29,8 +30,9 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => { // async function to use await
     e.preventDefault();
+    setLoading(true); // Set loading to true when submitting
 
     let formIsValid = true;
     const newErrors = { ...errors };
@@ -51,29 +53,23 @@ const Login = () => {
           Email: formData.email,
           Password: formData.password,
         };
-        axios
-          .post("http://127.0.0.1:5000/api/user/login", data)
-          .then((response) => {
-            if (response.status === 201) { 
-              
-              alert("Congratulations, login successful!!");
-              window.localStorage.setItem("token",response.data['token']);
-              const userInfoString = JSON.stringify(response.data['user_info']);
-              window.localStorage.setItem("user_info",userInfoString);
-              navigate("/");
-            } else {
-              alert("Error, login failed!!");
-            }
-          })
-          .catch((error) => {
-            alert("User not found or password incorrect");
-          });
+        const response = await axios.post("http://127.0.0.1:5000/api/user/login", data);
+        if (response.status === 201) {
+          alert("Congratulations, login successful!!");
+          window.localStorage.setItem("token", response.data['token']);
+          const userInfoString = JSON.stringify(response.data['user_info']);
+          window.localStorage.setItem("user_info", userInfoString);
+          navigate("/");
+        } else {
+          alert("Error, login failed!!");
+        }
       } catch (error) {
-        alert("server not responding please try again later");
+        alert("User not found or password incorrect");
       }
     } else {
       setErrors(newErrors);
     }
+    setLoading(false); // Set loading to false when done
   };
 
   return (
@@ -82,7 +78,6 @@ const Login = () => {
         <h2 className="text-3xl font-semibold text-center mb-6">
           Employee Login
         </h2>
-        <div></div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label
@@ -126,25 +121,31 @@ const Login = () => {
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
           </div>
-          <button
+          <Button
             type="submit"
-            className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading} // Disable button when loading
           >
-            Login
-          </button>
+            {loading ? (
+              <CircularProgress color="inherit" size={24} />
+            ) : (
+              'Login'
+            )}
+          </Button>
+
           <p className="text-center mt-4">
             New Employee?{" "}
             <Link to="/Registerpage" className="text-blue-500">
               Register Here
             </Link>
-
-           {/* forget password code */}
+            {/* forget password code */}
             <br />
             <Link to="/forget-password" className="text-blue-500">
-            Reset Password
+              Reset Password
             </Link>
           </p>
-          
         </form>
       </div>
     </div>
