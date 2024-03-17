@@ -349,11 +349,11 @@ const Home = () => {
         </h1>
       </div>
 
-      <div className="space-x-10 mt-5 p-3">
+      <div className="space-x-10 mt-5 p-3 sm: space-y-4 mr-16 ml-8 ">
         <button
           type="button"
           onClick={() => handleButtonClick("office")}
-          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 "
         >
           Office In
         </button>
@@ -367,7 +367,7 @@ const Home = () => {
         <button
           type="button"
           onClick={() => handleButtonClick("workFromHome")}
-          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 "
         >
           Work From Home
         </button>
