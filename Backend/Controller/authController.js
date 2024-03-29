@@ -2,7 +2,7 @@ import User from "../model/userModel.js";
 import bcrypt from "bcrypt";
 import "dotenv/config.js";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+
 
 //register part
 const register = async (req, res) => {
@@ -297,58 +297,55 @@ const fetchUserInfo = async (req, res) => {
 
 //forget password
 
-const ForgetPassword = async (req, res) => {
-  const { Email } = req.body;
-
+const forgetPassword = async (req, res) => {
   try {
-    // Check if user exists
-    const user = await User.findOne({ email: Email });
+      // Fetch data from req body
+      const { Email, Password } = req.body;
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found. Please register first." });
-    }
-
-    // Generate reset token
-    const token = jwt.sign({ id: user._id }, "JWT_SECRET", { expiresIn: "15m" });
-
-    // Save the reset token to the user's document in the database
-    user.resetToken = token;
-    await user.save();
-
-    // Create transporter with Gmail credentials
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "rishabhraipur40@gmail.com",
-        pass: "eninuweejkwenmdf",
-      },
-    });
-
-    
-
-    // Setup email options
-    const mailOptions = {
-      from: "your-email@gmail.com",
-      to: user.Email,
-      subject: "Reset your password",
-      text: `https://127.0.0.1:5000/api/user/ForgetPassword/${user._id}/${token}`,
-    };
-
-    // Send email
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-        return res.status(500).send({ Status: "Email sending failed" });
-      } else {
-        console.log(info);
-        return res.send({ Status: "Success" });
+      // Validations
+      if (!Email || !Password) {
+          return res.status(400).json({
+              success: false,
+              msg: "All fields are required!"
+          });
       }
-    });
+
+      // Check if user exists
+      const user = await User.findOne({ Email });
+      if (!user) {
+          return res.status(400).json({
+              success: false,
+              msg: "User not registered!"
+          });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(Password, 10);
+
+      // Update user's password
+      user.password = hashedPassword;
+      await user.save();
+
+      res.status(201).json({
+          success: true,
+          msg: "Password reset successfully!",
+          user: user
+      });
+
   } catch (error) {
-    console.error(error);
-    return res.status(500).send({ Status: "Internal Server Error" });
+      console.error("Forget Password Error:", error);
+      return res.status(500).json({
+          success: false,
+          msg: "Password reset failed!",
+          error: error.message
+      });
   }
-};
+}
+
+
+
+     
+      
 
 export {
   register,
@@ -356,5 +353,6 @@ export {
   attendance,
   getAllUsersAttendance,
   fetchUserInfo,
-  ForgetPassword,
+  forgetPassword
+  
 };
