@@ -27,12 +27,27 @@ const Home = () => {
 
     setIsLoggedIn(true);
 
-    const resetDailyActions = () => {
+    const handleUserDeletion = () => {
+      // Remove the user's data from the database (backend operation)
+    
+      // Remove the corresponding data from the localStorage
+    
+      useEffect(() => {
+        console.log("officeIn status:", localStorage.getItem("officeIn"));
+        localStorage.removeItem("officeIn");
+        localStorage.removeItem("halfDay");
+        localStorage.removeItem("workFromHome");
+        localStorage.removeItem("officeOut");
+      }, []);
+      
+    
+      // Reset the state variables if needed
       setHasOfficeIn(false);
       setHasHalfDay(false);
       setHasWorkFromHome(false);
       setHasLoggedOut(false);
     };
+    
 
     const midnightIntervalId = setInterval(() => {
       const now = new Date();
@@ -258,42 +273,46 @@ const Home = () => {
       alert("Please login!!");
       return;
     }
-
+  
     // Check if the user has already performed the action for the day
     switch (attendanceType) {
       case "office":
-        if (hasOfficeIn) {
+        if (hasOfficeIn || localStorage.getItem("officeIn")) {
           alert("You have already clicked Office In for today.");
           return;
         }
         setHasOfficeIn(true);
+        localStorage.setItem("officeIn", true);
         break;
       case "halfDay":
-        if (hasHalfDay) {
+        if (hasHalfDay || localStorage.getItem("halfDay")) {
           alert("You have already clicked Half Day for today.");
           return;
         }
         setHasHalfDay(true);
+        localStorage.setItem("halfDay", true);
         break;
       case "workFromHome":
-        if (hasWorkFromHome) {
+        if (hasWorkFromHome || localStorage.getItem("workFromHome")) {
           alert("You have already clicked Work From Home for today.");
           return;
         }
         setHasWorkFromHome(true);
+        localStorage.setItem("workFromHome", true);
         break;
       case "Office Out":
         // Assuming Logout is equivalent to Office Out
-        if (hasLoggedOut) {
+        if (hasLoggedOut || localStorage.getItem("officeOut")) {
           alert("You have already logged out for today.");
           return;
         }
         setHasLoggedOut(true);
+        localStorage.setItem("officeOut", true);
         break;
       default:
         break;
     }
-
+  
     try {
       await getUserLocationAndCheckIn(attendanceType);
       alert("Attendance Done!!");
@@ -302,6 +321,7 @@ const Home = () => {
       window.alert("Error submitting attendance. Please try again.");
     }
   };
+  
 
   const exportToExcel = () => {
     const data = [];
@@ -353,7 +373,7 @@ const Home = () => {
         <button
           type="button"
           onClick={() => handleButtonClick("office")}
-          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 "
+          className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 ml-10 "
         >
           Office In
         </button>
@@ -452,7 +472,7 @@ const Home = () => {
           </div>
         ))}
 
-         {/* Pagination buttons */}
+         
        
         {/* Pagination buttons */}
         <div className="flex justify-center mt-4">
