@@ -10,7 +10,7 @@ const RegisterPage = () => {
     phoneNumber: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    // confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({
@@ -18,7 +18,7 @@ const RegisterPage = () => {
     phoneNumber: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    // confirmPassword: "",
   });
 
   const handleChange = (e) => {
@@ -38,7 +38,7 @@ const RegisterPage = () => {
     phoneNumber: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    // confirmPassword: "",
   };
 
   const resetForm = () => {
@@ -48,7 +48,7 @@ const RegisterPage = () => {
       phoneNumber: "",
       email: "",
       password: "",
-      confirmPassword: "",
+      // confirmPassword: "",
     });
   };
 
@@ -84,13 +84,13 @@ const RegisterPage = () => {
       newErrors.password = "Password is required";
     }
 
-    if (!formData.confirmPassword) {
-      formIsValid = false;
-      newErrors.confirmPassword = "Confirm password is required";
-    } else if (formData.password !== formData.confirmPassword) {
-      formIsValid = false;
-      newErrors.confirmPassword = "Passwords do not match";
-    }
+    // if (!formData.confirmPassword) {
+    //   formIsValid = false;
+    //   newErrors.confirmPassword = "Confirm password is required";
+    // } else if (formData.password !== formData.confirmPassword) {
+    //   formIsValid = false;
+    //   newErrors.confirmPassword = "Passwords do not match";
+    // }
 
     if (formIsValid) {
       try {
@@ -99,7 +99,7 @@ const RegisterPage = () => {
           phoneNumber: formData.phoneNumber,
           Email: formData.email,
           Password: formData.password,
-          ConfirmPassword: formData.confirmPassword,
+          // ConfirmPassword: formData.confirmPassword,
         };
         await axios
           .post("http://127.0.0.1:5000/api/user/register", data)
@@ -211,7 +211,7 @@ const RegisterPage = () => {
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-600"
@@ -233,7 +233,7 @@ const RegisterPage = () => {
                 {errors.confirmPassword}
               </p>
             )}
-          </div>
+          </div> */}
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600"

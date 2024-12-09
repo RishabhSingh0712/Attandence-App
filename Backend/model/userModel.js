@@ -79,10 +79,10 @@ const userSchema = new Schema({
     type: String,
     required: [true, "Password is required"],
   },
-  ConfirmPassword: {
-    type: String,
-    required: [true, "Password is required"],
-  },
+  // ConfirmPassword: {
+  //   type: String,
+  //   required: [true, "Password is required"],
+  // },
   officeAttendance: [officeAttendanceSchema],
   halfDayAttendance: [halfDaySchema],
   workFromHomeAttendance: [workFromHomeSchema],

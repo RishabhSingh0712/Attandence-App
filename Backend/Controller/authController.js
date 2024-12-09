@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 const register = async (req, res) => {
   try {
     // Fetch data from req body
-    const { name, phoneNumber, Email, Password, ConfirmPassword } = req.body;
+    const { name, phoneNumber, Email, Password  } = req.body;
 
     // Check if user already exists
     const checkUserExist = await User.findOne({ Email: Email });
@@ -28,7 +28,7 @@ const register = async (req, res) => {
     }
 
     // Check if all fields are provided
-    if (!name || !phoneNumber || !Email || !Password || !ConfirmPassword) {
+    if (!name || !phoneNumber || !Email || !Password ) {
       return res.status(400).json({
         success: false,
         Message: "All fields are mandatory!",
@@ -47,7 +47,7 @@ const register = async (req, res) => {
       Email: Email,
       phoneNumber: phoneNumber,
       Password: hashpassword,
-      ConfirmPassword,
+      // ConfirmPassword,
     });
 
     res.status(201).json({
@@ -341,12 +341,6 @@ const forgetPassword = async (req, res) => {
       });
   }
 }
-
-
-
-     
-      
-
 export {
   register,
   login,
